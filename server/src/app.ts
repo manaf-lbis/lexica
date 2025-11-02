@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import appRoute from './router/appRoute'
+import errorHandler from './middleware/errorHandler'
 
 const app = express()
 
@@ -10,6 +11,7 @@ app.use(express.json())
 
 app.use('/api', appRoute)
 
+app.use(errorHandler)
 
 
 
