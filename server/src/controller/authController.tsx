@@ -1,7 +1,10 @@
 class AuthController {
     constructor() {
+
     }
 
-
     
+
+
+
 }
