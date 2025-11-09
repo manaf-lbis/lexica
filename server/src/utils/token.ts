@@ -3,9 +3,9 @@ import ApiError from "./apiError";
 import { Types } from "mongoose";
 
 export interface TokenPayload {
-    userId?: Types.ObjectId;
+    userId: Types.ObjectId;
     role?: string;
-    email?: string;
+    email: string;
     name?: string;
     dateOfBirth?: Date;
     hashedPassword?: string;

@@ -26,14 +26,6 @@ export const authApi = createApi({
             }),
         }),
 
-        forgotPassword: builder.mutation({
-            query: (email) => ({
-                url: "/auth/forgot-password",
-                method: "POST",
-                body: email,
-            }),
-        }),
-
         signup: builder.mutation({
             query: (userData) => ({
                 url: "/auth/signup",
@@ -54,7 +46,39 @@ export const authApi = createApi({
             query: (email) => ({
                 url: "/auth/resent-otp",
                 method: "POST",
-                body: { email },
+                body: email,
+            }),
+        }),
+
+        forgotPassword: builder.mutation({
+            query: (email) => ({
+                url: "/auth/forgot-password",
+                method: "POST",
+                body: email,
+            }),
+        }),
+
+        verifyResetOtp: builder.mutation({
+            query: (otp: string) => ({
+                url: "/auth/forgot-password/verify-otp",
+                method: "POST",
+                body: {otp},
+            }),
+        }),
+
+        setNewPassword: builder.mutation({
+            query: (password: string) => ({
+                url: "/auth/forgot-password/set-new-password",
+                method: "POST",
+                body: {password},
+            }),
+        }),
+
+        resentResetOtp: builder.mutation({
+            query: (email: string) => ({
+                url: "/auth/forgot-password/resent-otp",
+                method: "POST",
+                body: {email},
             }),
         }),
 
@@ -67,9 +91,13 @@ export const {
     useValidateUserQuery,
     useLoginMutation,
     useLogoutMutation,
-    useForgotPasswordMutation,
     useSignupMutation,
     useVerifySignupOtpMutation,
-    useResentOtpMutation
+    useResentOtpMutation,
+
+    useForgotPasswordMutation,
+    useVerifyResetOtpMutation,
+    useSetNewPasswordMutation,
+    useResentResetOtpMutation,
 } = authApi;
 

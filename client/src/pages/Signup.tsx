@@ -3,9 +3,11 @@ import { useState } from "react"
 import { Eye, EyeOff, Mail, Lock, User, Calendar, ArrowRight, AlertCircle, CheckCircle } from "lucide-react"
 import OTPInput from "../components/OtpInput"
 import { useNavigate } from "react-router-dom"
-import { useSignupMutation, useVerifySignupOtpMutation } from "../api/authApi"
+import { useResentOtpMutation, useSignupMutation, useVerifySignupOtpMutation } from "../api/authApi"
 import { useDispatch } from "react-redux"
 import { setUser } from "../slice/authSlice"
+import ResendTimer from "../components/ResentTimer"
+import { toast } from "sonner"
 
 
 interface FormErrors {
@@ -30,7 +32,8 @@ export default function SignupForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [signup, { isLoading }] = useSignupMutation();
-  const [verifyOtp,{isLoading: otpLoading}] = useVerifySignupOtpMutation();
+  const [verifyOtp, { isLoading: otpLoading }] = useVerifySignupOtpMutation();
+  const [resentOtp, { isLoading: resentLoading }] = useResentOtpMutation();
   const dispatch = useDispatch();
 
   const [otp, setOtp] = useState("")
@@ -92,6 +95,16 @@ export default function SignupForm() {
     return Object.keys(newErrors).length === 0
   }
 
+  const handleResendOTP = async () => {
+    try {
+      await resentOtp({ email }).unwrap()
+      toast.success("OTP resent successfully.")
+      setErrors({})
+    } catch (error: any) {
+      setErrors({ ...errors, server: error?.data?.message || "Failed to send OTP. Please try again." })
+    }
+  }
+
   const handleDetailsSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validateDetailsForm()) return
@@ -110,7 +123,7 @@ export default function SignupForm() {
     if (!validateOTP()) return
 
     try {
-      const response = await verifyOtp({otp}).unwrap();
+      const response = await verifyOtp({ otp }).unwrap();
       dispatch(setUser(response.user));
       navigate("/")
     } catch (error: any) {
@@ -399,17 +412,11 @@ export default function SignupForm() {
 
             {/* Resend OTP Link */}
             <div className="text-center text-xs sm:text-sm text-slate-400">
-              Didn't receive the code?{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  console.log("Resend OTP to:", email)
-                  setOtp("")
-                }}
-                className="text-blue-400 hover:text-blue-300 transition-colors duration-300 font-medium"
-              >
-                Resend
-              </button>
+              <ResendTimer
+                onResend={handleResendOTP}
+                duration={30}
+                isLoading={resentLoading || otpLoading}
+              />
             </div>
 
             {/* Submit Button */}

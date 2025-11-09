@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { UserModel } from "../model/userModel";
 import { IUser } from "../types/user";
 import { BaseRepository } from "./baseRepository";
@@ -11,6 +12,10 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
 
     async findByEmail(email: string): Promise<IUser | null> {
         return await UserModel.findOne({ email }).exec();
+    }
+
+    async clearRefreshToken(userId: Types.ObjectId): Promise<void> {
+        await UserModel.updateMany({_id: userId}, { $unset: { refreshToken: 1 } });
     }
 
 

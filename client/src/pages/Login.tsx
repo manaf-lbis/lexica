@@ -154,12 +154,12 @@ export default function LoginForm() {
 
           {/* Forgot Password Link */}
           <div className="text-right">
-            <a
-              href="/forgot-password"
-              className="text-xs sm:text-sm text-blue-400 hover:text-blue-300 transition-colors duration-300 font-medium"
+            <div
+              onClick={() => navigate("/forgot-password")}
+              className="cursor-pointer text-xs sm:text-sm text-blue-400 hover:text-blue-300 transition-colors duration-300 font-medium"
             >
               Forgot password?
-            </a>
+            </div>
           </div>
 
           {/* Submit Button */}

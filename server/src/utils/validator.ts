@@ -42,3 +42,15 @@ export function validateDateOfBirth(dateOfBirth:string) {
   return dob; 
 }
 
+export function validateOtp(otp: string, length: number = 6) {
+  if (!otp || typeof otp !== "string") throw new Error("OTP is required.");
+
+  const trimmedOtp = otp.trim();
+
+  if (!/^\d+$/.test(trimmedOtp)) throw new Error("OTP must contain only numbers.");
+
+  if (trimmedOtp.length !== length)
+    throw new Error(`OTP must be exactly ${length} digits.`);
+
+  return trimmedOtp; 
+}
