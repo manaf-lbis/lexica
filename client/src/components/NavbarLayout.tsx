@@ -2,8 +2,11 @@ import { Menu, Plus, Search, User, X, LogIn, Home, Compass, Bookmark, Settings, 
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import type { RootState } from "../store/store"
+import { useLogoutMutation } from "../api/authApi"
+import { toast } from "sonner"
+import { logout } from "../slice/authSlice"
 
 export default function NavbarLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -12,6 +15,8 @@ export default function NavbarLayout() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
+  const dispatch = useDispatch()
+  const [logoutCall] = useLogoutMutation()
   const { isAuthenticated, loading } = useSelector((state: RootState) => state.auth)
 
   const handleSearch = (e: React.FormEvent) => {
@@ -23,9 +28,18 @@ export default function NavbarLayout() {
     }
   }
 
-  const handleLogout = () => {
-    setUserMenuOpen(false)
-    navigate("/")
+  const handleLogout = async () => {
+    try {
+      await logoutCall({}).unwrap()
+      dispatch(logout());
+      setUserMenuOpen(false)
+      navigate("/")
+      toast.success( "Successfully signed out.")
+    } catch (e : any){
+      toast.error(e.data?.message || "Failed to sign out. Please try again.")
+    }
+
+
   }
 
   useEffect(() => {
@@ -45,9 +59,9 @@ export default function NavbarLayout() {
     { icon: Flame, label: "Trending", path: "/trending" },
     ...(isAuthenticated
       ? [
-          { icon: Bookmark, label: "Saved", path: "/saved" },
-          { icon: Settings, label: "Settings", path: "/settings" },
-        ]
+        { icon: Bookmark, label: "Saved", path: "/saved" },
+        { icon: Settings, label: "Settings", path: "/settings" },
+      ]
       : []),
   ]
 
@@ -63,9 +77,8 @@ export default function NavbarLayout() {
       )}
 
       <aside
-        className={`fixed md:relative md:flex flex-col h-screen bg-slate-900 border-r border-slate-800 transition-all duration-300 z-50 md:hover:w-64 md:group ${
-          sidebarHovered ? "md:w-64" : "md:w-20"
-        } ${sidebarOpen ? "w-64 translate-x-0" : "-translate-x-full md:translate-x-0"}`}
+        className={`fixed md:relative md:flex flex-col h-screen bg-slate-900 border-r border-slate-800 transition-all duration-300 z-50 md:hover:w-64 md:group ${sidebarHovered ? "md:w-64" : "md:w-20"
+          } ${sidebarOpen ? "w-64 translate-x-0" : "-translate-x-full md:translate-x-0"}`}
         onMouseEnter={() => setSidebarHovered(true)}
         onMouseLeave={() => setSidebarHovered(false)}
       >
@@ -75,9 +88,8 @@ export default function NavbarLayout() {
               ✎
             </div>
             <span
-              className={`text-sm font-bold bg-linear-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent transition-all ${
-                sidebarHovered ? "md:block md:opacity-100 md:w-auto" : "md:hidden md:opacity-0 md:w-0"
-              } whitespace-nowrap overflow-hidden`}
+              className={`text-sm font-bold bg-linear-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent transition-all ${sidebarHovered ? "md:block md:opacity-100 md:w-auto" : "md:hidden md:opacity-0 md:w-0"
+                } whitespace-nowrap overflow-hidden`}
             >
               Lexica
             </span>
@@ -96,11 +108,10 @@ export default function NavbarLayout() {
               key={item.path}
               to={item.path}
               onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group relative ${
-                isActive(item.path)
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group relative ${isActive(item.path)
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                   : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
-              }`}
+                }`}
               title={!sidebarHovered ? item.label : ""}
             >
               <item.icon className="w-5 h-5 shrink-0" />
@@ -155,9 +166,8 @@ export default function NavbarLayout() {
                   ✎
                 </div>
                 <span
-                  className={`text-sm font-bold bg-linear-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent transition-all ${
-                    sidebarHovered ? "md:block md:opacity-100 md:w-auto" : "md:hidden md:opacity-0 md:w-0"
-                  } whitespace-nowrap overflow-hidden`}
+                  className={`text-sm font-bold bg-linear-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent transition-all ${sidebarHovered ? "md:block md:opacity-100 md:w-auto" : "md:hidden md:opacity-0 md:w-0"
+                    } whitespace-nowrap overflow-hidden`}
                 >
                   Lexica
                 </span>

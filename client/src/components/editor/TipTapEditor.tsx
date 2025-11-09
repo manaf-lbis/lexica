@@ -221,7 +221,7 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
 
   return (
     <div className="w-full">
-      <div className="sticky top-24 z-40 bg-slate-900 border border-b border-slate-700 rounded-t-lg p-3 flex flex-wrap items-center gap-1 shadow-lg">
+      <div className="sticky top-0 z-40 bg-slate-900 border border-b border-slate-700 rounded-t-lg p-3 flex flex-wrap items-center gap-1 shadow-lg">
         <ToolbarButton onClick={undo} title="Undo">
           <Undo2 className="w-4 h-4" />
         </ToolbarButton>

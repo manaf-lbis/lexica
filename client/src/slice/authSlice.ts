@@ -1,6 +1,18 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = {
+interface User {
+  email: string;
+  name: string;
+  avatar?: string | null;
+}
+
+interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+}
+
+const initialState: AuthState = {
   user: null,
   isAuthenticated: !!localStorage.getItem("isAuthenticated"),
   loading: true,

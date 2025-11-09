@@ -4,7 +4,7 @@ import TipTapEditor from "./TipTapEditor"
 interface Article {
   id?: string
   title: string
-  excerpt: string
+  about: string
   content: string
   category: string
   isPublished: boolean
@@ -16,7 +16,7 @@ interface EditArticleFormProps {
 
 export default function EditArticleForm({ article }: EditArticleFormProps) {
   const [title, setTitle] = useState(article.title)
-  const [excerpt, setExcerpt] = useState(article.excerpt)
+  const [about, setAbout] = useState(article.about)
   const [category, setCategory] = useState(article.category)
   const [content, setContent] = useState(article.content)
   const [isPreview, setIsPreview] = useState(false)
@@ -53,10 +53,10 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-300 mb-2">Excerpt</label>
+          <label className="block text-sm font-semibold text-slate-300 mb-2">about</label>
           <textarea
-            value={excerpt}
-            onChange={(e) => setExcerpt(e.target.value)}
+            value={about}
+            onChange={(e) => setAbout(e.target.value)}
             rows={2}
             className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500 transition-colors resize-none"
           />

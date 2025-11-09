@@ -1,20 +1,25 @@
 import type React from "react"
-
 import { useState } from "react"
-import { Link } from "react-router-dom"
 import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { useDispatch } from "react-redux"
+import { setUser } from "../slice/authSlice"
+import { useLoginMutation } from "../api/authApi"
 
 interface FormErrors {
   email?: string
   password?: string
+  server?: string
 }
 
-export default function LoginPage() {
+export default function LoginForm() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<FormErrors>({})
+  const dispatch = useDispatch();
+  const [login,{isLoading}] = useLoginMutation()
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
@@ -35,26 +40,26 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validateForm()) return
-
-    setIsLoading(true)
-    setTimeout(() => setIsLoading(false), 1500)
+    try {
+      const response = await login({ email, password }).unwrap();
+      dispatch(setUser(response.user));
+      navigate("/");
+    } catch (error: any) {
+      setErrors({ ...errors, server: error.data?.message || 'Failed to sign in. Please try again.' });
+    }
   }
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value)
-    if (errors.email) setErrors({ ...errors, email: undefined })
-  }
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value)
-    if (errors.password) setErrors({ ...errors, password: undefined })
+  const clearFieldError = (field: keyof FormErrors) => {
+    if (errors[field] || errors.server) {
+      setErrors({ ...errors, [field]: undefined, server: undefined })
+    }
   }
 
   return (
-    <div className="min-h-screen w-full bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4 py-6 sm:py-8">
+    <div className="min-h-screen w-full bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-3 sm:px-4 py-4 sm:py-8 overflow-hidden">
       {/* Decorative blur */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
@@ -62,28 +67,39 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 sm:mb-2">Welcome Back</h1>
-          <p className="text-sm sm:text-base text-slate-400">Sign in to your Lexica account</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1">Welcome Back</h1>
+          <p className="text-xs sm:text-sm text-slate-400">Sign in to your Lexica account</p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl sm:rounded-2xl p-5 sm:p-8 space-y-4 sm:space-y-6"
+          className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl sm:rounded-2xl p-3 sm:p-5 md:p-6 space-y-3 sm:space-y-4"
         >
+          {/* Server Error Message */}
+          {errors.server && (
+            <div className="flex items-center gap-2 text-red-400 text-xs sm:text-sm bg-red-500/10 border border-red-500/50 rounded-lg p-3">
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              <span>{errors.server}</span>
+            </div>
+          )}
+
           {/* Email Input */}
-          <div className="space-y-2">
-            <label htmlFor="email" className="block text-xs sm:text-sm font-semibold text-slate-200">
+          <div className="space-y-1">
+            <label htmlFor="email" className="block text-xs font-semibold text-slate-200">
               Email Address
             </label>
             <div className="relative group">
-              <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-500 group-focus-within:text-blue-400 transition-colors duration-300" />
+              <Mail className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-blue-400 transition-colors duration-300" />
               <input
                 id="email"
                 type="email"
                 placeholder="name@example.com"
                 value={email}
-                onChange={handleEmailChange}
-                className={`w-full pl-11 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-slate-700/50 border rounded-lg transition-all duration-300 focus:outline-none text-sm sm:text-base placeholder:text-slate-500 text-white ${
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  clearFieldError("email")
+                }}
+                className={`w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-2 bg-slate-700/50 border rounded-lg transition-all duration-300 focus:outline-none text-xs sm:text-sm placeholder:text-slate-500 text-white ${
                   errors.email
                     ? "border-red-500 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
                     : "border-slate-600 hover:border-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
@@ -91,27 +107,30 @@ export default function LoginPage() {
               />
             </div>
             {errors.email && (
-              <div className="flex items-center gap-2 text-red-400 text-xs sm:text-sm mt-1">
-                <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span>{errors.email}</span>
+              <div className="flex items-center gap-1.5 text-red-400 text-xs mt-0.5">
+                <AlertCircle className="w-3 h-3 shrink-0" />
+                <span className="leading-tight">{errors.email}</span>
               </div>
             )}
           </div>
 
           {/* Password Input */}
-          <div className="space-y-2">
-            <label htmlFor="password" className="block text-xs sm:text-sm font-semibold text-slate-200">
+          <div className="space-y-1">
+            <label htmlFor="password" className="block text-xs font-semibold text-slate-200">
               Password
             </label>
             <div className="relative group">
-              <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-500 group-focus-within:text-blue-400 transition-colors duration-300" />
+              <Lock className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-blue-400 transition-colors duration-300" />
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
-                onChange={handlePasswordChange}
-                className={`w-full pl-11 sm:pl-12 pr-11 sm:pr-12 py-2.5 sm:py-3 bg-slate-700/50 border rounded-lg transition-all duration-300 focus:outline-none text-sm sm:text-base placeholder:text-slate-500 text-white ${
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  clearFieldError("password")
+                }}
+                className={`w-full pl-10 sm:pl-11 pr-10 sm:pr-11 py-2 bg-slate-700/50 border rounded-lg transition-all duration-300 focus:outline-none text-xs sm:text-sm placeholder:text-slate-500 text-white ${
                   errors.password
                     ? "border-red-500 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
                     : "border-slate-600 hover:border-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
@@ -120,74 +139,62 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-blue-400 transition-colors duration-300"
+                className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-blue-400 transition-colors duration-300"
               >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" />
-                ) : (
-                  <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
-                )}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             {errors.password && (
-              <div className="flex items-center gap-2 text-red-400 text-xs sm:text-sm mt-1">
-                <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span>{errors.password}</span>
+              <div className="flex items-center gap-1.5 text-red-400 text-xs mt-0.5">
+                <AlertCircle className="w-3 h-3 shrink-0" />
+                <span className="leading-tight">{errors.password}</span>
               </div>
             )}
           </div>
 
-          {/* Forgot Password */}
-          <div className="flex justify-end pt-1">
-            <Link
-              to="#"
+          {/* Forgot Password Link */}
+          <div className="text-right">
+            <a
+              href="/forgot-password"
               className="text-xs sm:text-sm text-blue-400 hover:text-blue-300 transition-colors duration-300 font-medium"
             >
               Forgot password?
-            </Link>
+            </a>
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2.5 sm:py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:shadow-lg hover:shadow-blue-500/30 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
+            className="w-full py-2 sm:py-2.5 px-3 sm:px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:shadow-lg hover:shadow-blue-500/30 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs sm:text-sm"
           >
             {isLoading ? (
               <>
-                <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 <span>Signing in...</span>
               </>
             ) : (
               <>
                 <span>Sign In</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </>
             )}
           </button>
 
-          <div className="relative py-3 sm:py-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-600"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-3 bg-slate-800/50 text-slate-400 font-medium text-xs sm:text-sm">New to Lexica?</span>
-            </div>
+          {/* Sign up Link */}
+          <div className="text-center text-xs sm:text-sm text-slate-400">
+            Don't have an account?{" "}
+            <button
+              type="button"
+              onClick={() => navigate("/signup")}
+              className="text-blue-400 hover:text-blue-300 transition-colors duration-300 font-medium"
+            >
+              Sign up
+            </button>
           </div>
-
-          {/* Sign Up Link */}
-          <Link
-            to="/signup"
-            className="block w-full py-2.5 sm:py-3 px-4 border-2 border-slate-600 hover:border-blue-500 hover:bg-blue-500/10 text-slate-200 font-semibold rounded-lg transition-all duration-300 text-center focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-800 text-sm sm:text-base"
-          >
-            Create Account
-          </Link>
         </form>
 
-        {/* Footer */}
-        <p className="text-center text-slate-500 text-xs sm:text-sm mt-6 sm:mt-8">
-          © 2025 Lexica. All rights reserved.
-        </p>
+        <p className="text-center text-slate-500 text-xs mt-3 sm:mt-4">© 2025 Lexica. All rights reserved.</p>
       </div>
     </div>
   )

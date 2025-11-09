@@ -7,7 +7,7 @@ import ModalConfirmation from "./ModalConfirmation"
 
 export default function NewArticleForm() {
   const [title, setTitle] = useState("")
-  const [excerpt, setExcerpt] = useState("")
+  const [about, setAbout] = useState("")
   const [category, setCategory] = useState("Technology")
   const [content, setContent] = useState("");
 
@@ -56,10 +56,10 @@ export default function NewArticleForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-300 mb-2">Excerpt</label>
+          <label className="block text-sm font-semibold text-slate-300 mb-2">About</label>
           <textarea
-            value={excerpt}
-            onChange={(e) => setExcerpt(e.target.value)}
+            value={about}
+            onChange={(e) => setAbout(e.target.value)}
             placeholder="A brief summary of your article..."
             rows={2}
             className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"

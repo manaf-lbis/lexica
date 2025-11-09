@@ -58,32 +58,39 @@ import ExplorePage from '../pages/Explore';
 import { Write } from '../pages/Write';
 import AuthInitializer from '../hooks/AuthInitaliser';
 import { ProtectedRoute } from './protectedRoute';
-import { PublicRoute} from './publicRoute';
+import { PublicRoute } from './publicRoute';
 import NavbarLayout from '../components/NavbarLayout';
 import React from 'react';
+import ForgotPasswordPage from '../pages/ForgotPassword';
+import ProfilePage from '../pages/ProfilePage';
 
 const AppRoute: React.FC = () => {
   return (
     <AuthInitializer>
       <Routes>
-        {/* Public routes without NavbarLayout */}
+
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
         </Route>
 
-        {/* Routes with NavbarLayout */}
+
         <Route element={<NavbarLayout />}>
-          <Route element={<PublicRoute />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/trending" element={<div>Trending Page</div>} /> {/* Placeholder */}
-            <Route path="/saved" element={<div>Saved Page</div>} /> {/* Placeholder */}
-            <Route path="/settings" element={<div>Settings Page</div>} /> {/* Placeholder */}
-          </Route>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/trending" element={<div>Trending Page</div>} />
+
           <Route element={<ProtectedRoute />}>
+            <Route path="/saved" element={<div>Saved Page</div>} />
+            <Route path="/settings" element={<div>Settings Page</div>} />
             <Route path="/write" element={<Write />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
+          <Route path="*" element={<HomePage />} />
+
+
         </Route>
       </Routes>
     </AuthInitializer>

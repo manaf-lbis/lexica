@@ -8,20 +8,8 @@ const router = Router();
 
 
 router.use('/auth', authRoute);
+router.use('/v1', authRoute);
 
-
-
-
-
-router.get('/test', (req, res) => {
-    throw new ApiError('test',500,{})
-    res.json({
-        message: 'test',
-        status: 200,
-        serverStatus: 'ok',
-        timestamp: new Date()
-    })
-})
 
 
 

@@ -6,7 +6,7 @@ import Footer from "../components/Footer"
 interface Article {
   id: number
   title: string
-  excerpt: string
+  about: string
   author: string
   avatar: string
   category: string
@@ -20,7 +20,7 @@ const articles: Article[] = [
   {
     id: 1,
     title: "The Future of Web Development: 2025 Trends You Need to Know",
-    excerpt: "Explore the emerging technologies and frameworks that are reshaping how we build web applications.",
+    about: "Explore the emerging technologies and frameworks that are reshaping how we build web applications.",
     author: "Sarah Chen",
     avatar: "/professional-avatar-woman.jpg",
     category: "Technology",
@@ -32,7 +32,7 @@ const articles: Article[] = [
   {
     id: 2,
     title: "Mastering React: Advanced Patterns for Production Applications",
-    excerpt: "Deep dive into advanced React patterns that will level up your application architecture.",
+    about: "Deep dive into advanced React patterns that will level up your application architecture.",
     author: "Alex Kumar",
     avatar: "/professional-avatar-man.jpg",
     category: "Development",
@@ -44,7 +44,7 @@ const articles: Article[] = [
   {
     id: 3,
     title: "Building Scalable APIs: From Concept to Production",
-    excerpt: "Learn best practices for designing and implementing APIs that scale with your business.",
+    about: "Learn best practices for designing and implementing APIs that scale with your business.",
     author: "Emma Wilson",
     avatar: "/professional-avatar-female.jpg",
     category: "Backend",
@@ -59,7 +59,7 @@ const forYouArticles: Article[] = [
   {
     id: 4,
     title: "TypeScript Best Practices in 2025",
-    excerpt: "Master TypeScript with these proven practices used by top companies.",
+    about: "Master TypeScript with these proven practices used by top companies.",
     author: "David Lee",
     avatar: "/professional-avatar-man.jpg",
     category: "Development",
@@ -71,7 +71,7 @@ const forYouArticles: Article[] = [
   {
     id: 5,
     title: "DevOps Automation: Streamline Your Workflow",
-    excerpt: "Automate your deployment pipeline and reduce manual errors significantly.",
+    about: "Automate your deployment pipeline and reduce manual errors significantly.",
     author: "Lisa Wong",
     avatar: "/professional-avatar-woman.jpg",
     category: "DevOps",
@@ -83,7 +83,7 @@ const forYouArticles: Article[] = [
   {
     id: 6,
     title: "Frontend Performance Optimization Guide",
-    excerpt: "Learn techniques to make your React apps blazing fast.",
+    about: "Learn techniques to make your React apps blazing fast.",
     author: "James Miller",
     avatar: "/professional-avatar-man.jpg",
     category: "Frontend",
@@ -191,7 +191,7 @@ const HomePage:React.FC = ()=> {
                   {article.title}
                 </h3>
 
-                <p className="text-sm text-slate-400 mb-4 line-clamp-2 flex-1">{article.excerpt}</p>
+                <p className="text-sm text-slate-400 mb-4 line-clamp-2 flex-1">{article.about}</p>
 
                 <div className="flex items-center justify-between text-xs text-slate-400 mb-4 pb-4 border-b border-slate-700/50">
                   <span>{article.category}</span>
@@ -253,7 +253,7 @@ const HomePage:React.FC = ()=> {
                     {article.title}
                   </h3>
 
-                  <p className="text-sm text-slate-400 mb-4 line-clamp-2 flex-1">{article.excerpt}</p>
+                  <p className="text-sm text-slate-400 mb-4 line-clamp-2 flex-1">{article.about}</p>
 
                   <div className="flex items-center justify-between text-xs text-slate-400 mb-4 pb-4 border-b border-slate-700/50">
                     <span>{article.category}</span>
