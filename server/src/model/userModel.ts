@@ -19,6 +19,11 @@ const userSchema = new Schema<IUser>({
         type:String,
         required:true,
     },
+    aboutMe: {
+        type: String,
+        trim: true,
+        maxlength: 500
+    },
     avatar: {
         type: String,
     },

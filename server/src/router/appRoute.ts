@@ -1,6 +1,6 @@
 import { Router } from "express";
 import authRoute from "./authRoute";
-import ApiError from "../utils/apiError";
+import profileRouter from "./profileRoute";
 
 const router = Router();
 
@@ -8,7 +8,7 @@ const router = Router();
 
 
 router.use('/auth', authRoute);
-router.use('/v1', authRoute);
+router.use('/profile', profileRouter);
 
 
 

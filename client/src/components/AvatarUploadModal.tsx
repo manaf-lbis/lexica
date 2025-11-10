@@ -1,72 +1,61 @@
-import type React from "react"
-
-import { useState, useRef, useCallback } from "react"
-import ReactEasyCrop, { type Point, type Area } from "react-easy-crop"
+import type React from "react";
+import { useState, useRef, useCallback } from "react";
+import ReactEasyCrop, { type Point, type Area } from "react-easy-crop";
 
 interface AvatarUploadModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onUpload: (croppedImage: string) => void
+  isOpen: boolean;
+  onClose: () => void;
+  onUpload: (croppedImage: string) => void;
 }
 
 export default function AvatarUploadModal({ isOpen, onClose, onUpload }: AvatarUploadModalProps) {
-  const [imageSrc, setImageSrc] = useState<string | null>(null)
-  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 })
-  const [zoom, setZoom] = useState(1)
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
-  const [error, setError] = useState<string>("")
-  const [isLoading, setIsLoading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    setError("")
-
-    if (!file) return
-
+    const file = e.target.files?.[0];
+    setError("");
+    if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setError("Please upload a valid image file")
-      return
+      setError("Please upload a valid image file");
+      return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
-      setError("Image size must be less than 5MB")
-      return
+      setError("Image size must be less than 5MB");
+      return;
     }
-
-    const reader = new FileReader()
-    reader.onload = () => {
-      setImageSrc(reader.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
+    const reader = new FileReader();
+    reader.onload = () => setImageSrc(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
-    setCroppedAreaPixels(croppedAreaPixels)
-  }, [])
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
 
   const createImage = (url: string): Promise<HTMLImageElement> =>
     new Promise((resolve, reject) => {
-      const image = new Image()
-      image.addEventListener("load", () => resolve(image))
-      image.addEventListener("error", (err) => reject(err))
-      image.setAttribute("crossOrigin", "anonymous")
-      image.src = url
-    })
+      const image = new Image();
+      image.addEventListener("load", () => resolve(image));
+      image.addEventListener("error", (err) => reject(err));
+      image.setAttribute("crossOrigin", "anonymous");
+      image.src = url;
+    });
 
   const getCroppedImg = async (): Promise<string> => {
-    if (!imageSrc || !croppedAreaPixels) return ""
-
-    const image = await createImage(imageSrc)
-    const canvas = document.createElement("canvas")
-    const ctx = canvas.getContext("2d")
-
-    if (!ctx) return ""
-
-    const maxSize = Math.min(croppedAreaPixels.width, croppedAreaPixels.height)
-    canvas.width = maxSize
-    canvas.height = maxSize
-
+    if (!imageSrc || !croppedAreaPixels) return "";
+    const image = await createImage(imageSrc);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return "";
+    const maxSize = Math.min(croppedAreaPixels.width, croppedAreaPixels.height);
+    canvas.width = maxSize;
+    canvas.height = maxSize;
     ctx.drawImage(
       image,
       croppedAreaPixels.x,
@@ -77,41 +66,47 @@ export default function AvatarUploadModal({ isOpen, onClose, onUpload }: AvatarU
       0,
       maxSize,
       maxSize,
-    )
-
-    return canvas.toDataURL("image/jpeg", 0.95)
-  }
+    );
+    return canvas.toDataURL("image/jpeg", 0.95);
+  };
 
   const handleConfirm = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const croppedImage = await getCroppedImg()
-      onUpload(croppedImage)
-      setImageSrc(null)
-      setCrop({ x: 0, y: 0 })
-      setZoom(1)
+      const croppedImage = await getCroppedImg();
+      onUpload(croppedImage);
+      setImageSrc(null);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
     } catch {
-      setError("Failed to process image. Please try again.")
+      setError("Failed to process image. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleReset = () => {
-    setImageSrc(null)
-    setCrop({ x: 0, y: 0 })
-    setZoom(1)
-    setError("")
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
-  }
+    setImageSrc(null);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setError("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg max-w-md w-full">
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg max-w-md w-full relative">
+        {/* Loading Overlay */}
+        {isLoading && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-50 rounded-lg">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-t-blue-500 border-gray-200 dark:border-gray-700 rounded-full animate-spin" />
+              <p className="text-white font-medium">Processing Avatar...</p>
+            </div>
+          </div>
+        )}
         {/* Header */}
         <div className="border-b border-slate-200 dark:border-slate-700 px-6 py-4 flex justify-between items-center">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Upload Profile Avatar</h2>
@@ -125,7 +120,6 @@ export default function AvatarUploadModal({ isOpen, onClose, onUpload }: AvatarU
             </svg>
           </button>
         </div>
-
         {/* Content */}
         <div className="p-6 space-y-4">
           {!imageSrc ? (
@@ -133,12 +127,7 @@ export default function AvatarUploadModal({ isOpen, onClose, onUpload }: AvatarU
               className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
             >
-              <svg
-                className="w-8 h-8 text-slate-400 mx-auto mb-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-8 h-8 text-slate-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -173,8 +162,6 @@ export default function AvatarUploadModal({ isOpen, onClose, onUpload }: AvatarU
                   restrictPosition={true}
                 />
               </div>
-
-              {/* Zoom Control */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Zoom</label>
                 <input
@@ -189,10 +176,7 @@ export default function AvatarUploadModal({ isOpen, onClose, onUpload }: AvatarU
               </div>
             </div>
           )}
-
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-          {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             {imageSrc ? (
               <>
@@ -225,5 +209,5 @@ export default function AvatarUploadModal({ isOpen, onClose, onUpload }: AvatarU
         </div>
       </div>
     </div>
-  )
+  );
 }

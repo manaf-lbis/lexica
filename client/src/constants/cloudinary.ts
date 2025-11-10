@@ -1,0 +1,1 @@
+export const CLOUDINARY_BASE = "https://res.cloudinary.com/lexica/image/upload/";

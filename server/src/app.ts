@@ -11,18 +11,16 @@ const app = express();
 dotenv.config();
 
 connectDB()
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 
-console.log(process.env.CLIENT_URL);
 
 
 app.use(cors({
     origin:process.env.CLIENT_URL,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT','PATCH', 'DELETE'],
     credentials: true
 }));
-
 
 
 app.use('/api', appRoute);
