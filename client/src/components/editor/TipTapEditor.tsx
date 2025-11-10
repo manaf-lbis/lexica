@@ -1,167 +1,129 @@
-import type React from "react"
-import { useCallback, useRef, useState } from "react"
-import { useEditor, EditorContent } from "@tiptap/react"
-import StarterKit from "@tiptap/starter-kit"
-import Placeholder from "@tiptap/extension-placeholder"
-import Link from "@tiptap/extension-link"
-import Image from "@tiptap/extension-image"
-import TextAlign from "@tiptap/extension-text-align"
-import Heading from "@tiptap/extension-heading"
-import HorizontalRule from "@tiptap/extension-horizontal-rule"
+import { useCallback, useRef, useState } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Placeholder from "@tiptap/extension-placeholder";
+import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
+import TextAlign from "@tiptap/extension-text-align";
+import Heading from "@tiptap/extension-heading";
+import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import {
-  Bold,
-  Italic,
-  Strikethrough,
-  Code,
-  Heading2,
-  List,
-  ListOrdered,
-  Quote,
-  LinkIcon,
-  Undo2,
-  Redo2,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  ImageIcon,
-  ChevronDown,
-  X,
-  Loader,
-  Trash2,
-  Minus,
-} from "lucide-react"
+  Bold, Italic, Strikethrough, Code, Heading2, List, ListOrdered,
+  Quote, LinkIcon, Undo2, Redo2, AlignLeft, AlignCenter, AlignRight,
+  ImageIcon, ChevronDown, X, Loader, Trash2, Minus
+} from "lucide-react";
+import { useImageUploadMutation } from "../../api/articleApi";
+import { getCloudinaryImage } from "../../utils/cloudinaryUrl";
 
 interface TipTapEditorProps {
-  value: string
-  onChange: (value: string) => void
+  value: string;
+  onChange: (value: string) => void;
 }
 
 export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
-  const [isHeadingOpen, setIsHeadingOpen] = useState(false)
-  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
-  const [imageLoading, setImageLoading] = useState(false)
-  const [selectedImageNode, setSelectedImageNode] = useState<any>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [linkUrl, setLinkUrl] = useState("")
-  const [linkError, setLinkError] = useState("")
+  const [isHeadingOpen, setIsHeadingOpen] = useState(false);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [selectedImageNode, setSelectedImageNode] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkError, setLinkError] = useState("");
+  const [imageUpload] = useImageUploadMutation();
+
+  
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        heading: false,
-      }),
-      Heading.configure({
-        levels: [1, 2, 3, 4, 5],
-      }),
-      Placeholder.configure({
-        placeholder: "Start typing your article...",
-      }),
-      Link.configure({
-        openOnClick: false,
-        autolink: true,
-      }),
-      Image.configure({
-        allowBase64: true,
-      }),
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      }),
-      HorizontalRule.configure({
-        HTMLAttributes: {
-          class: "my-4 border-t-2 border-slate-600",
-        },
-      }),
+      StarterKit.configure({ heading: false }),
+      Heading.configure({ levels: [1, 2, 3, 4, 5] }),
+      Placeholder.configure({ placeholder: "Start typing your article..." }),
+      Link.configure({ openOnClick: false, autolink: true }),
+      Image.configure({ allowBase64: false }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+      HorizontalRule.configure({ HTMLAttributes: { class: "my-4 border-t-2 border-slate-600" } }),
     ],
     content: value,
-    onUpdate: ({ editor }) => {
-      onChange(editor.getHTML())
-    },
+    onUpdate: ({ editor }) => onChange(editor.getHTML()),
     onSelectionUpdate: ({ editor }) => {
-      const { $from } = editor.state.selection
-      const node = $from.nodeAfter
-      if (node?.type.name === "image") {
-        setSelectedImageNode(node)
-      } else {
-        setSelectedImageNode(null)
-      }
+      const { $from } = editor.state.selection;
+      const node = $from.nodeAfter;
+      setSelectedImageNode(node?.type.name === "image" ? node : null);
     },
-  })
+  });
 
   const isValidUrl = (urlString: string): boolean => {
     try {
-      const url = new URL(urlString.startsWith("http") ? urlString : `https://${urlString}`)
-      return url.protocol === "http:" || url.protocol === "https:"
+      const url = new URL(urlString.startsWith("http") ? urlString : `https://${urlString}`);
+      return url.protocol === "http:" || url.protocol === "https:";
     } catch {
-      return false
+      return false;
     }
-  }
+  };
 
   const handleAddLink = () => {
-    setLinkUrl("")
-    setLinkError("")
-    setIsLinkModalOpen(true)
-  }
+    setLinkUrl("");
+    setLinkError("");
+    setIsLinkModalOpen(true);
+  };
 
   const handleConfirmLink = useCallback(() => {
     if (!linkUrl.trim()) {
-      setLinkError("URL cannot be empty")
-      return
+      setLinkError("URL cannot be empty");
+      return;
     }
-
     if (!isValidUrl(linkUrl)) {
-      setLinkError("Please enter a valid URL (e.g., https://example.com)")
-      return
+      setLinkError("Please enter a valid URL (e.g., https://example.com)");
+      return;
     }
-
     if (editor) {
-      const urlToAdd = linkUrl.startsWith("http") ? linkUrl : `https://${linkUrl}`
-      editor.chain().focus().extendMarkRange("link").setLink({ href: urlToAdd }).run()
-      setIsLinkModalOpen(false)
-      setLinkUrl("")
-      setLinkError("")
+      const urlToAdd = linkUrl.startsWith("http") ? linkUrl : `https://${linkUrl}`;
+      editor.chain().focus().extendMarkRange("link").setLink({ href: urlToAdd }).run();
+      setIsLinkModalOpen(false);
+      setLinkUrl("");
+      setLinkError("");
     }
-  }, [linkUrl, editor])
+  }, [linkUrl, editor]);
 
   const handleAddImage = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   const handleDeleteImage = () => {
     if (editor && selectedImageNode) {
-      editor.chain().focus().deleteSelection().run()
-      setSelectedImageNode(null)
+      editor.chain().focus().deleteSelection().run();
+      setSelectedImageNode(null);
     }
-  }
+  };
 
   const handleFileSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (!file || !editor) return
+      const files = e.target.files;
+      if (!files || !editor) return;
 
-      setImageLoading(true)
+      setImageLoading(true);
       try {
-        const reader = new FileReader()
-        reader.onload = (event) => {
-          const base64 = event.target?.result as string
-          editor.chain().focus().setImage({ src: base64, alt: file.name }).run()
-          setImageLoading(false)
+        for (const file of Array.from(files)) {
+          const reader = new FileReader();
+          const base64 = await new Promise<string>((resolve, reject) => {
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error("Failed to read file"));
+            reader.readAsDataURL(file);
+          });
+          const result = await imageUpload(base64).unwrap(); // Send base64 string
+          const publicId = result; // Assuming endpoint returns publicId
+          const imageUrl = getCloudinaryImage(publicId);
+          editor.chain().focus().setImage({ src: imageUrl, alt: file.name }).run();
         }
-        reader.onerror = () => {
-          setImageLoading(false)
-          alert("Failed to read image file")
-        }
-        reader.readAsDataURL(file)
-      } catch  {
-        setImageLoading(false)
-        alert("Failed to process image")
-      }
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
+      } catch (error) {
+        console.error("Image upload failed:", error);
+        alert("Failed to upload image to Cloudinary");
+      } finally {
+        setImageLoading(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
       }
     },
-    [editor],
-  )
+    [editor, imageUpload],
+  );
 
   const ToolbarButton = ({
     onClick,
@@ -170,11 +132,11 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
     title,
     disabled,
   }: {
-    onClick: () => void
-    isActive?: boolean
-    children: React.ReactNode
-    title: string
-    disabled?: boolean
+    onClick: () => void;
+    isActive?: boolean;
+    children: React.ReactNode;
+    title: string;
+    disabled?: boolean;
   }) => (
     <button
       onClick={onClick}
@@ -190,34 +152,29 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
     >
       {children}
     </button>
-  )
+  );
 
-  const Separator = () => <div className="w-px h-6 bg-slate-600 mx-1"></div>
+  const Separator = () => <div className="w-px h-6 bg-slate-600 mx-1"></div>;
 
-  const undo = () => editor?.chain().focus().undo().run()
-  const redo = () => editor?.chain().focus().redo().run()
-  const alignLeft = () => editor?.chain().focus().setTextAlign("left").run()
-  const alignCenter = () => editor?.chain().focus().setTextAlign("center").run()
-  const alignRight = () => editor?.chain().focus().setTextAlign("right").run()
-
+  const undo = () => editor?.chain().focus().undo().run();
+  const redo = () => editor?.chain().focus().redo().run();
+  const alignLeft = () => editor?.chain().focus().setTextAlign("left").run();
+  const alignCenter = () => editor?.chain().focus().setTextAlign("center").run();
+  const alignRight = () => editor?.chain().focus().setTextAlign("right").run();
   const setHeading = (level: 1 | 2 | 3 | 4 | 5) => {
-    editor?.chain().focus().toggleHeading({ level }).run()
-    setIsHeadingOpen(false)
-  }
+    editor?.chain().focus().toggleHeading({ level }).run();
+    setIsHeadingOpen(false);
+  };
+  const toggleBold = () => editor?.chain().focus().toggleBold().run();
+  const toggleItalic = () => editor?.chain().focus().toggleItalic().run();
+  const toggleStrike = () => editor?.chain().focus().toggleStrike().run();
+  const toggleBulletList = () => editor?.chain().focus().toggleBulletList().run();
+  const toggleOrderedList = () => editor?.chain().focus().toggleOrderedList().run();
+  const toggleBlockquote = () => editor?.chain().focus().toggleBlockquote().run();
+  const toggleCodeBlock = () => editor?.chain().focus().toggleCodeBlock().run();
+  const insertSeparator = () => editor?.chain().focus().setHorizontalRule().run();
 
-  const toggleBold = () => editor?.chain().focus().toggleBold().run()
-  const toggleItalic = () => editor?.chain().focus().toggleItalic().run()
-  const toggleStrike = () => editor?.chain().focus().toggleStrike().run()
-  const toggleBulletList = () => editor?.chain().focus().toggleBulletList().run()
-  const toggleOrderedList = () => editor?.chain().focus().toggleOrderedList().run()
-  const toggleBlockquote = () => editor?.chain().focus().toggleBlockquote().run()
-  const toggleCodeBlock = () => editor?.chain().focus().toggleCodeBlock().run()
-
-  const insertSeparator = () => editor?.chain().focus().setHorizontalRule().run()
-
-  if (!editor) {
-    return null
-  }
+  if (!editor) return null;
 
   return (
     <div className="w-full">
@@ -225,13 +182,10 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
         <ToolbarButton onClick={undo} title="Undo">
           <Undo2 className="w-4 h-4" />
         </ToolbarButton>
-
         <ToolbarButton onClick={redo} title="Redo">
           <Redo2 className="w-4 h-4" />
         </ToolbarButton>
-
         <Separator />
-
         <div className="relative">
           <button
             onClick={() => setIsHeadingOpen(!isHeadingOpen)}
@@ -245,13 +199,12 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
             <Heading2 className="w-4 h-4" />
             <ChevronDown className="w-3 h-3" />
           </button>
-
           {isHeadingOpen && (
             <div className="absolute top-full left-0 mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg z-50">
               <button
                 onClick={() => {
-                  editor.chain().focus().setParagraph().run()
-                  setIsHeadingOpen(false)
+                  editor.chain().focus().setParagraph().run();
+                  setIsHeadingOpen(false);
                 }}
                 className={`w-full px-4 py-2 text-left text-sm ${
                   editor.isActive("paragraph")
@@ -281,53 +234,39 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
             </div>
           )}
         </div>
-
         <Separator />
-
         <ToolbarButton onClick={toggleBulletList} isActive={editor.isActive("bulletList")} title="Bullet List">
           <List className="w-4 h-4" />
         </ToolbarButton>
-
         <ToolbarButton onClick={toggleOrderedList} isActive={editor.isActive("orderedList")} title="Ordered List">
           <ListOrdered className="w-4 h-4" />
         </ToolbarButton>
-
         <Separator />
-
         <ToolbarButton onClick={toggleBold} isActive={editor.isActive("bold")} title="Bold">
           <Bold className="w-4 h-4" />
         </ToolbarButton>
-
         <ToolbarButton onClick={toggleItalic} isActive={editor.isActive("italic")} title="Italic">
           <Italic className="w-4 h-4" />
         </ToolbarButton>
-
         <ToolbarButton onClick={toggleStrike} isActive={editor.isActive("strike")} title="Strikethrough">
           <Strikethrough className="w-4 h-4" />
         </ToolbarButton>
-
         <ToolbarButton onClick={toggleCodeBlock} isActive={editor.isActive("codeBlock")} title="Code Block">
           <Code className="w-4 h-4" />
         </ToolbarButton>
-
         <Separator />
-
         <ToolbarButton onClick={toggleBlockquote} isActive={editor.isActive("blockquote")} title="Quote">
           <Quote className="w-4 h-4" />
         </ToolbarButton>
-
         <ToolbarButton onClick={insertSeparator} title="Add Separator Line">
           <Minus className="w-4 h-4" />
         </ToolbarButton>
-
         <ToolbarButton onClick={handleAddLink} title="Add Link">
           <LinkIcon className="w-4 h-4" />
         </ToolbarButton>
-
         <ToolbarButton onClick={handleAddImage} disabled={imageLoading} title="Add Image">
-          {imageLoading ? <Loader className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+          {imageLoading ? <Loader className="text-white w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
         </ToolbarButton>
-
         {selectedImageNode && (
           <>
             <Separator />
@@ -336,17 +275,13 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
             </ToolbarButton>
           </>
         )}
-
         <Separator />
-
         <ToolbarButton onClick={alignLeft} isActive={editor.isActive({ textAlign: "left" })} title="Align Left">
           <AlignLeft className="w-4 h-4" />
         </ToolbarButton>
-
         <ToolbarButton onClick={alignCenter} isActive={editor.isActive({ textAlign: "center" })} title="Align Center">
           <AlignCenter className="w-4 h-4" />
         </ToolbarButton>
-
         <ToolbarButton onClick={alignRight} isActive={editor.isActive({ textAlign: "right" })} title="Align Right">
           <AlignRight className="w-4 h-4" />
         </ToolbarButton>
@@ -406,7 +341,6 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
           .editor-content-wrapper .ProseMirror p {
             margin-bottom: 1rem;
           }
-          /* Improve bullet list visibility with better colors and styling */
           .editor-content-wrapper .ProseMirror ul {
             margin-left: 1.5rem;
             margin-bottom: 1rem;
@@ -480,9 +414,10 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        multiple
         onChange={handleFileSelect}
         className="hidden"
-        aria-label="Upload image"
+        aria-label="Upload images"
       />
 
       {isLinkModalOpen && (
@@ -502,8 +437,8 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
               placeholder="https://example.com"
               value={linkUrl}
               onChange={(e) => {
-                setLinkUrl(e.target.value)
-                setLinkError("")
+                setLinkUrl(e.target.value);
+                setLinkError("");
               }}
               onKeyPress={(e) => e.key === "Enter" && handleConfirmLink()}
               autoFocus
@@ -528,19 +463,5 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
         </div>
       )}
     </div>
-  )
+  );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

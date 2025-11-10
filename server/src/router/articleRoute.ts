@@ -1,0 +1,19 @@
+import Router from 'express';
+import { ArticleController } from '../controller/articleController';
+import { authentication } from '../middleware/authentication';
+import { ArticleService } from '../service/ArticleService';
+import { ArticleRepository } from '../repository/articleRepository';
+
+const articleRepository = new ArticleRepository()
+const articleService  = new ArticleService(articleRepository)
+const articleController = new ArticleController(articleService)
+
+const router = Router();
+
+router.post('/image-upload',authentication, articleController.imageUpload.bind(articleController));
+router.get('/categories',authentication, articleController.getCategories.bind(articleController));
+router.post('/publish',authentication, articleController.publish.bind(articleController));
+
+
+
+export default router

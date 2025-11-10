@@ -1,7 +1,8 @@
 import { useState } from "react"
 import { Send, Eye, EyeOff } from "lucide-react"
 import TipTapEditor from "./TipTapEditor"
-import ModalConfirmation from "./ModalConfirmation"
+import { useGetCategoriesQuery, usePublishMutation } from "../../api/articleApi"
+import { toast } from "sonner"
 
 
 
@@ -10,34 +11,26 @@ export default function NewArticleForm() {
   const [about, setAbout] = useState("")
   const [category, setCategory] = useState("Technology")
   const [content, setContent] = useState("");
-
-  console.log(content);
-  
   const [isPreview, setIsPreview] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [showModal, setShowModal] = useState(false)
-  const [modalMessage, setModalMessage] = useState("")
-
-  const categories = ["Technology", "Development", "Backend", "Frontend", "DevOps", "Other"]
+  const { data: categories, isLoading} = useGetCategoriesQuery({});
+  const [publish, { isLoading: isPublishing }] = usePublishMutation();
 
   const handlePublish = async () => {
-    setIsSaving(true)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsSaving(false)
-    setShowModal(true)
-    setModalMessage("Article published successfully!")
+    try {
+      await publish({ title, about, content, category }).unwrap()
+      toast.success("Article published successfully.");
+    } catch (error:any) {
+      toast.error(error.data?.message || "Failed to publish article. Please try again.");
+    }
   }
 
   const handleSaveDraft = async () => {
-    setIsSaving(true)
     await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsSaving(false)
-    setShowModal(true)
-    setModalMessage("Draft saved successfully!")
+
   }
 
-  const handleModalClose = () => {
-    setShowModal(false)
+  if (isLoading) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -73,7 +66,7 @@ export default function NewArticleForm() {
             onChange={(e) => setCategory(e.target.value)}
             className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500 transition-colors"
           >
-            {categories.map((cat) => (
+            {categories.map((cat:string) => (
               <option key={cat} value={cat} className="bg-slate-800">
                 {cat}
               </option>
@@ -213,23 +206,22 @@ export default function NewArticleForm() {
       <div className="flex gap-3 pt-6 border-t border-slate-700">
         <button
           onClick={handleSaveDraft}
-          disabled={isSaving}
+          disabled={isPublishing}
           className="px-6 py-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white font-semibold rounded-lg transition-all duration-300"
         >
           Save Draft
         </button>
         <button
           onClick={handlePublish}
-          disabled={isSaving || !title.trim()}
+          disabled={isPublishing || !title.trim()}
           className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all duration-300 transform hover:shadow-lg hover:shadow-blue-500/30"
         >
           <Send className="w-4 h-4" />
-          {isSaving ? "Publishing..." : "Publish"}
+          {isPublishing ? "Publishing..." : "Publish"}
         </button>
       </div>
 
-      {/* Modal Confirmation */}
-      {showModal && <ModalConfirmation message={modalMessage} onClose={handleModalClose} />}
+      
     </div>
   )
 }
