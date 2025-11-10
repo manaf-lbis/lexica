@@ -18,5 +18,9 @@ export class UserRepository extends BaseRepository<IUser> implements IUserReposi
         await UserModel.updateMany({_id: userId}, { $unset: { refreshToken: 1 } });
     }
 
+    async findUserWithPrefrences(userId: Types.ObjectId): Promise<any> {
+        return await UserModel.findById(userId).populate("prefrences").exec();
+    }
+
 
 }

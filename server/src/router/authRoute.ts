@@ -32,6 +32,4 @@ router.get('/validate', authentication, authController.validateUser.bind(authCon
 
 
 
-
-
 export default router

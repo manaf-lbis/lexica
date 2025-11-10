@@ -3,6 +3,7 @@ import { useValidateUserQuery } from "../api/authApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser, logout, setLoading } from "../slice/authSlice";
 import type { RootState } from "../store/store";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function AuthInitializer({ children }: { children: React.ReactNode }) {
     const dispatch = useDispatch();
@@ -24,7 +25,7 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
         }
     }, [data, error, isLoading, dispatch]);
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) return <LoadingScreen />
 
     return <>{children} </>;
 }
