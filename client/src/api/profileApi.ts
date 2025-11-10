@@ -1,13 +1,19 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { basequery } from "../utils/baseQuery";
 
-export interface ProfileData {
-    name: string;
-    email: string;
-    dateOfBirth: string; 
-    aboutMe?: string;
-    avatar?: string | null;
-    categories?: string[];
+interface Category {
+  id: string;
+  name: string;
+  isPrefered: boolean;
+}
+
+interface ProfileData {
+  name: string;
+  email: string;
+  dateOfBirth: string;
+  aboutMe?: string;
+  avatar?: string | null;
+  categories: Category[];
 }
 
 export const profileApi = createApi({
@@ -23,7 +29,7 @@ export const profileApi = createApi({
             providesTags: ["Profile"],
         }),
 
-        updateProfile: builder.mutation<ProfileData, Partial<ProfileData>>({
+        updateProfile: builder.mutation<any, Partial<ProfileData>>({
             query: (data) => ({
                 url: "/profile",
                 method: "PATCH",
@@ -32,7 +38,7 @@ export const profileApi = createApi({
             invalidatesTags: ["Profile"],
         }),
 
-        updateAvatar: builder.mutation<ProfileData, { avatar: string }>({
+        updateAvatar: builder.mutation<any, { avatar: string }>({
             query: (data) => ({
                 url: "/profile/avatar",
                 method: "PATCH",
@@ -40,7 +46,16 @@ export const profileApi = createApi({
             }),
             invalidatesTags: ["Profile"],
         }),
+
+        updateCategoryPrefrences: builder.mutation<any, { categories: string[] }>({
+            query: (data) => ({
+                url: "/profile/categories",
+                method: "PATCH",
+                body: data,
+            }),
+            invalidatesTags: ["Profile"],
+        })
     }),
 });
 
-export const { useGetProfileQuery, useUpdateProfileMutation, useUpdateAvatarMutation } = profileApi;
+export const { useGetProfileQuery, useUpdateProfileMutation, useUpdateAvatarMutation, useUpdateCategoryPrefrencesMutation } = profileApi;

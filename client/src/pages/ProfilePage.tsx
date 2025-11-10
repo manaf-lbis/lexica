@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
 import AvatarUploadModal from "../components/AvatarUploadModal";
 import CategoryPreferenceModal from "../components/CategoryPrefrenceModal";
-import { useGetProfileQuery, useUpdateProfileMutation, useUpdateAvatarMutation } from "../api/profileApi";
+import { useGetProfileQuery, useUpdateProfileMutation, useUpdateAvatarMutation, useUpdateCategoryPrefrencesMutation } from "../api/profileApi";
 import { getCloudinaryImage } from "../utils/cloudinaryUrl";
+
+interface Category {
+  id: string;
+  name: string;
+  isPrefered: boolean;
+}
 
 interface ProfileData {
   name: string;
@@ -10,27 +16,20 @@ interface ProfileData {
   dateOfBirth: string;
   aboutMe?: string;
   avatar?: string | null;
-  categories?: string[];
+  categories: Category[];
 }
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("profile");
-  const [profile, setProfile] = useState<ProfileData>({
-    name: "John Doe",
-    email: "john@example.com",
-    dateOfBirth: "1990-01-15",
-    aboutMe: "",
-    avatar: null,
-    categories: [],
-  });
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [formData, setFormData] = useState<ProfileData>(profile);
+  const [formData, setFormData] = useState<ProfileData | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { data, isLoading, error } = useGetProfileQuery();
   const [updateProfile, { isLoading: isUpdating, error: updateError }] = useUpdateProfileMutation();
-  const [updateAvatar,{ isLoading: isUpdatingAvatar}] = useUpdateAvatarMutation();
+  const [updateAvatar, { isLoading: isUpdatingAvatar }] = useUpdateAvatarMutation();
+  const [updateCategoryPrefrences, { isLoading: isUpdatingCategories, error: categoriesError }] = useUpdateCategoryPrefrencesMutation();
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -42,33 +41,30 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (data) {
-      setProfile(data);
       setFormData(data);
     }
   }, [data]);
 
   const handleAvatarUpload = async (croppedImage: string) => {
     try {
-      setIsAvatarModalOpen(false)
+      setIsAvatarModalOpen(false);
       await updateAvatar({ avatar: croppedImage }).unwrap();
-      setProfile((prev) => ({ ...prev, avatar: croppedImage }));
     } catch (err: any) {
-      setErrors({ avatar: err?.data?.message || "Failed to update avatar. Try again." });
+      setErrors({ avatar: err?.data?.message || "Failed to update avatar." });
     }
   };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.name.trim()) newErrors.name = "Name is required";
-    if (!formData.dateOfBirth) {
-      newErrors.dateOfBirth = "Date of birth is required";
-    } else {
+    if (!formData?.name.trim()) newErrors.name = "Name is required";
+    if (!formData?.dateOfBirth) newErrors.dateOfBirth = "Date of birth is required";
+    else {
       const dateOfBirth = new Date(formData.dateOfBirth);
       const today = new Date();
       const age = today.getFullYear() - dateOfBirth.getFullYear();
       if (age < 13) newErrors.dateOfBirth = "You must be at least 13 years old";
     }
-    if (formData.aboutMe && formData.aboutMe.length > 500) {
+    if (formData?.aboutMe && formData.aboutMe.length > 500) {
       newErrors.aboutMe = "About me cannot exceed 500 characters";
     }
     return newErrors;
@@ -76,19 +72,17 @@ export default function ProfilePage() {
 
   const handleSaveProfile = async () => {
     const newErrors = validateForm();
-    if (Object.keys(newErrors).length === 0) {
+    if (Object.keys(newErrors).length === 0 && formData) {
       try {
         await updateProfile({
           name: formData.name,
           dateOfBirth: formData.dateOfBirth,
           aboutMe: formData.aboutMe,
         }).unwrap();
-
-        setProfile(formData);
         setIsEditingProfile(false);
         setErrors({});
       } catch (err: any) {
-        setErrors({ api: err.data?.message || "Failed to update profile. Try again." });
+        setErrors({ api: err.data?.message || "Failed to update profile." });
       }
     } else {
       setErrors(newErrors);
@@ -96,18 +90,17 @@ export default function ProfilePage() {
   };
 
   const handleCancel = () => {
-    setFormData(profile);
+    setFormData(data!);
     setIsEditingProfile(false);
     setErrors({});
   };
 
-  const handleCategoriesSave = async (selectedCategories: string[]) => {
+  const handleCategoriesSave = async (selectedIds: string[]) => {
     try {
-      await updateProfile({ categories: selectedCategories }).unwrap();
-      setProfile((prev) => ({ ...prev, categories: selectedCategories }));
+      await updateCategoryPrefrences({ categories: selectedIds }).unwrap();
       setIsCategoryModalOpen(false);
     } catch (err: any) {
-      setErrors({ categories: err?.data?.message || "Failed to update categories. Try again." });
+      setErrors({ categories: err?.data?.message || "Failed to update categories." });
     }
   };
 
@@ -134,7 +127,7 @@ export default function ProfilePage() {
   };
 
   if (isLoading) return <div>Loading...</div>;
-  if (error) return <div className="text-red-500">Error: {(error as any).data?.message || "Failed to load profile"}</div>;
+  if (error || !formData) return <div className="text-red-500">Error: {(error as any)?.data?.message || "Failed to load profile"}</div>;
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 p-4 sm:p-8">
@@ -180,11 +173,10 @@ export default function ProfilePage() {
             {activeTab === "profile" && (
               <div className="space-y-8">
                 <div className="flex flex-col sm:flex-row items-center gap-8">
-
-                   <div className="relative shrink-0">
-                    {profile.avatar ? (
+                  <div className="relative shrink-0">
+                    {formData.avatar ? (
                       <img
-                        src={getCloudinaryImage(profile.avatar)|| "/placeholder.svg"}
+                        src={getCloudinaryImage(formData.avatar) || "/placeholder.svg"}
                         alt="Profile avatar"
                         className="w-32 h-32 rounded-full object-cover border-4 border-blue-500"
                       />
@@ -212,21 +204,20 @@ export default function ProfilePage() {
                       </svg>
                     </button>
                   </div>
-
                   <div className="flex-1 text-center sm:text-left">
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{profile.name}</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{formData.name}</h2>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 justify-center sm:justify-start">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span>{profile.email}</span>
+                        <span>{formData.email}</span>
                       </div>
                       <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 justify-center sm:justify-start">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span>{new Date(profile.dateOfBirth).toLocaleDateString()}</span>
+                        <span>{new Date(formData.dateOfBirth).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
@@ -237,7 +228,7 @@ export default function ProfilePage() {
                     {!isEditingProfile && (
                       <button
                         onClick={() => {
-                          setFormData(profile);
+                          setFormData(data!);
                           setIsEditingProfile(true);
                         }}
                         className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
@@ -248,14 +239,14 @@ export default function ProfilePage() {
                   </div>
                   {isEditingProfile ? (
                     <div className="space-y-6">
-                      {updateError && <p className="text-red-500 text-sm">Error: {(updateError as any).data?.message || "Failed to update profile"}</p>}
+                      {updateError && <p className="text-red-500 text-sm">Error: {(updateError as any)?.data?.message || "Failed to update profile"}</p>}
                       {isUpdating && <p className="text-blue-500 text-sm">Updating profile...</p>}
                       <div>
                         <label className="block text-sm font-medium text-slate-900 dark:text-slate-200 mb-2">Full Name</label>
                         <input
                           type="text"
                           value={formData.name}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                          onChange={(e) => setFormData((prev) => prev ? { ...prev, name: e.target.value } : prev)}
                           className={`w-full px-3 py-2 bg-white dark:bg-slate-700 border rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                             errors.name ? "border-red-500" : "border-slate-200 dark:border-slate-600"
                           }`}
@@ -268,7 +259,7 @@ export default function ProfilePage() {
                         <input
                           type="date"
                           value={formData.dateOfBirth}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, dateOfBirth: e.target.value }))}
+                          onChange={(e) => setFormData((prev) => prev ? { ...prev, dateOfBirth: e.target.value } : prev)}
                           className={`w-full px-3 py-2 bg-white dark:bg-slate-700 border rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                             errors.dateOfBirth ? "border-red-500" : "border-slate-200 dark:border-slate-600"
                           }`}
@@ -279,7 +270,7 @@ export default function ProfilePage() {
                         <label className="block text-sm font-medium text-slate-900 dark:text-slate-200 mb-2">About Me</label>
                         <textarea
                           value={formData.aboutMe || ""}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, aboutMe: e.target.value }))}
+                          onChange={(e) => setFormData((prev) => prev ? { ...prev, aboutMe: e.target.value } : prev)}
                           className={`w-full px-3 py-2 bg-white dark:bg-slate-700 border rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
                             errors.aboutMe ? "border-red-500" : "border-slate-200 dark:border-slate-600"
                           }`}
@@ -312,16 +303,16 @@ export default function ProfilePage() {
                     <div className="space-y-6">
                       <div>
                         <p className="text-slate-600 dark:text-slate-400 text-sm mb-1">Full Name</p>
-                        <p className="text-slate-900 dark:text-white text-lg">{profile.name}</p>
+                        <p className="text-slate-900 dark:text-white text-lg">{formData.name}</p>
                       </div>
                       <div>
                         <p className="text-slate-600 dark:text-slate-400 text-sm mb-1">Date of Birth</p>
-                        <p className="text-slate-900 dark:text-white text-lg">{new Date(profile.dateOfBirth).toLocaleDateString()}</p>
+                        <p className="text-slate-900 dark:text-white text-lg">{new Date(formData.dateOfBirth).toLocaleDateString()}</p>
                       </div>
                       <div>
                         <p className="text-slate-600 dark:text-slate-400 text-sm mb-1">About Me</p>
-                        {profile.aboutMe ? (
-                          <p className="text-slate-900 dark:text-white text-lg leading-relaxed">{profile.aboutMe}</p>
+                        {formData.aboutMe ? (
+                          <p className="text-slate-900 dark:text-white text-lg leading-relaxed">{formData.aboutMe}</p>
                         ) : (
                           <p className="text-slate-500 dark:text-slate-500 italic">No information provided yet</p>
                         )}
@@ -339,20 +330,23 @@ export default function ProfilePage() {
                     onClick={() => setIsCategoryModalOpen(true)}
                     className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
                   >
-                    {profile.categories?.length ? "Edit" : "Add"} Categories
+                    {formData.categories.some(c => c.isPrefered) ? "Edit" : "Add"} Categories
                   </button>
                 </div>
-                {errors.categories && <p className="text-red-500 text-sm mb-4">{errors.categories}</p>}
-                {profile.categories?.length ? (
+                {categoriesError && <p className="text-red-500 text-sm mb-4">{(categoriesError as any)?.data?.message || "Failed to update categories."}</p>}
+                {isUpdatingCategories && <p className="text-blue-500 text-sm mb-4">Updating categories...</p>}
+                {formData.categories.some(c => c.isPrefered) ? (
                   <div className="flex flex-wrap gap-3">
-                    {profile.categories.map((category) => (
-                      <span
-                        key={category}
-                        className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg font-medium border border-blue-200 dark:border-blue-800"
-                      >
-                        {category}
-                      </span>
-                    ))}
+                    {formData.categories
+                      .filter(c => c.isPrefered)
+                      .map((category) => (
+                        <span
+                          key={category.id}
+                          className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg font-medium border border-blue-200 dark:border-blue-800"
+                        >
+                          {category.name}
+                        </span>
+                      ))}
                   </div>
                 ) : (
                   <p className="text-slate-500 dark:text-slate-400 italic">
@@ -429,7 +423,7 @@ export default function ProfilePage() {
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
         onSave={handleCategoriesSave}
-        initialCategories={profile.categories || []}
+        categories={formData.categories}
       />
     </div>
   );

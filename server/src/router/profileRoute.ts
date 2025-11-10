@@ -18,6 +18,7 @@ const router = Router();
 router.get('/', authentication, profileController.getProfile.bind(profileController));
 router.patch('/', authentication, profileController.updateProfile.bind(profileController));
 router.patch('/avatar', authentication, profileController.updateAvatar.bind(profileController));
+router.patch('/categories', authentication, profileController.updateCategoryPrefrences.bind(profileController));
 
 
 

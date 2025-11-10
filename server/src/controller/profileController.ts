@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { IProfileService } from "../service/interface/IProfileService";
 import { sendSuccess } from "../utils/apiSuccess";
 import { validateDateOfBirth, validateName } from "../utils/validator";
+import { ArticleCategories } from "../constants/categories";
 
 export class ProfileController {
     constructor(
@@ -53,7 +54,25 @@ export class ProfileController {
         } catch (error) {
             next(error);
         }
-    }
+    };
+
+
+    async updateCategoryPrefrences(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { categories } = req.body;            
+            const userId = req.user?.userId;
+
+            const allCategories = Object.values(ArticleCategories);
+            categories.forEach((category:string) => {
+                if (!allCategories.includes(category as ArticleCategories)) throw new Error("Invalid category");
+            });
+            await this._profileService.updateCategoryPrefrences(userId!, categories);
+            sendSuccess(res, {}, "Category prefrences updated successfully");
+
+        } catch (error) {
+            next(error);
+        }
+    };
 
 
 }

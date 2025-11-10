@@ -12,7 +12,7 @@ export interface Email {
 }
 
 export interface Categories {
-    categories: ArticleCategories[]
+    categories: any
 }
 
 export interface ProfileData extends UserInfo, Categories,Email {
@@ -23,5 +23,7 @@ export interface IProfileService {
     getProfile(userId: Types.ObjectId): Promise<ProfileData>
     updateProfile(userId: Types.ObjectId, profileData: UserInfo): Promise<any>
     updateAvatar(userId: Types.ObjectId, avatar: string): Promise<any>
+    updateCategoryPrefrences(userId: Types.ObjectId, categoryPrefrences: ArticleCategories[] ): Promise<any>
+
 }
 

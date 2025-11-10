@@ -7,6 +7,7 @@ const articlePreferenceModal = new Schema<IArticlePrefrence>({
         type: Schema.Types.ObjectId,
         ref: "User",
         required: true,
+        unique: true,
     },
     prefrence: [{
         type: String,
