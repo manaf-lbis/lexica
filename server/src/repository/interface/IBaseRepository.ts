@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 
 export interface IBaseRepository<T> {
+  find(query: any): Promise<T[]>;
   create(entity: Partial<T>): Promise<T>;
   findById(id: Types.ObjectId): Promise<T | null>;
   findAll(): Promise<T[]>;

@@ -1,13 +1,16 @@
 import { useState } from "react"
 import { Save, Eye, EyeOff } from "lucide-react"
 import TipTapEditor from "./TipTapEditor"
+import { useEditArticleMutation, useGetCategoriesQuery } from "../../api/articleApi"
+import LoadingScreen from "../LoadingScreen"
+import { toast } from "sonner"
+import { useNavigate } from "react-router-dom"
 interface Article {
-  id?: string
+  _id: string
   title: string
   about: string
   content: string
   category: string
-  isPublished: boolean
 }
 
 interface EditArticleFormProps {
@@ -20,16 +23,23 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
   const [category, setCategory] = useState(article.category)
   const [content, setContent] = useState(article.content)
   const [isPreview, setIsPreview] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-
-  const categories = ["Technology", "Development", "Backend", "Frontend", "DevOps", "Other"]
+  const { data: categories, isLoading } = useGetCategoriesQuery({});
+  const [editArticle, { isLoading: isUpdating }] = useEditArticleMutation()
+  const navigate = useNavigate();
 
   const handleSave = async () => {
-    setIsSaving(true)
-    // Simulate save
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsSaving(false)
-    alert("Article updated successfully!")
+
+    try {
+      await editArticle({ _id: article._id, title, about, content, category }).unwrap()
+      toast.success("Article updated successfully.");
+      navigate(`/my-articles`, { replace: true });
+    } catch (error:any) {
+      toast.error(error.data?.message || "Failed to update article. Please try again.");
+    }
+  }
+
+  if (isLoading) {
+    return <LoadingScreen />
   }
 
   return (
@@ -69,7 +79,7 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
             onChange={(e) => setCategory(e.target.value)}
             className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500 transition-colors"
           >
-            {categories.map((cat) => (
+            {categories.map((cat: string) => (
               <option key={cat} value={cat} className="bg-slate-800">
                 {cat}
               </option>
@@ -209,11 +219,11 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
       <div className="flex gap-3 pt-6 border-t border-slate-700">
         <button
           onClick={handleSave}
-          disabled={isSaving}
+          disabled={isUpdating}
           className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold rounded-lg transition-all duration-300 transform hover:shadow-lg hover:shadow-blue-500/30"
         >
           <Save className="w-4 h-4" />
-          {isSaving ? "Saving..." : "Save Changes"}
+          {isUpdating ? "Saving..." : "Save Changes"}
         </button>
       </div>
     </div>

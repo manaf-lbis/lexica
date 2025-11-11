@@ -1,251 +1,267 @@
-import type React from "react";
-import { useState, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { Heart, MessageCircle, Bookmark, ArrowLeft } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { Heart, MessageCircle, ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
 import Footer from "../components/Footer";
+import { useGetCategoriesQuery, useSearchArticlesQuery } from "../api/articleApi";
+import { useAddLikeMutation } from "../api/likesAndCommentApi";
+import { toast } from "sonner";
 
 interface Article {
-  id: number;
+  _id: string;
   title: string;
   about: string;
-  author: string;
-  avatar: string;
+  content: string;
   category: string;
-  date: string;
-  readTime: number;
-  likes: number;
-  liked: boolean;
+  authorId: { name: string; avatar: string };
+  views: number;
+  createdAt: string;
+  isLiked: boolean;
 }
 
-const allArticles: Article[] = [
-  {
-    id: 1,
-    title: "The Future of Web Development: 2025 Trends You Need to Know",
-    about: "Explore the emerging technologies and frameworks that are reshaping how we build web applications.",
-    author: "Sarah Chen",
-    avatar: "/professional-avatar-woman.jpg",
-    category: "Technology",
-    date: "Nov 2, 2025",
-    readTime: 8,
-    likes: 234,
-    liked: false,
-  },
-  {
-    id: 2,
-    title: "Mastering React: Advanced Patterns for Production Applications",
-    about: "Deep dive into advanced React patterns that will level up your application architecture.",
-    author: "Alex Kumar",
-    avatar: "/professional-avatar-man.jpg",
-    category: "Development",
-    date: "Oct 30, 2025",
-    readTime: 12,
-    likes: 567,
-    liked: false,
-  },
-  {
-    id: 3,
-    title: "Building Scalable APIs: From Concept to Production",
-    about: "Learn best practices for designing and implementing APIs that scale with your business.",
-    author: "Emma Wilson",
-    avatar: "/professional-avatar-female.jpg",
-    category: "Backend",
-    date: "Oct 28, 2025",
-    readTime: 10,
-    likes: 432,
-    liked: false,
-  },
-  {
-    id: 4,
-    title: "TypeScript Best Practices in 2025",
-    about: "Master TypeScript with these proven practices used by top companies.",
-    author: "David Lee",
-    avatar: "/professional-avatar-man.jpg",
-    category: "Development",
-    date: "Nov 1, 2025",
-    readTime: 7,
-    likes: 189,
-    liked: false,
-  },
-  {
-    id: 5,
-    title: "DevOps Automation: Streamline Your Workflow",
-    about: "Automate your deployment pipeline and reduce manual errors significantly.",
-    author: "Lisa Wong",
-    avatar: "/professional-avatar-woman.jpg",
-    category: "DevOps",
-    date: "Oct 29, 2025",
-    readTime: 11,
-    likes: 298,
-    liked: false,
-  },
-  {
-    id: 6,
-    title: "Frontend Performance Optimization Guide",
-    about: "Learn techniques to make your React apps blazing fast.",
-    author: "James Miller",
-    avatar: "/professional-avatar-man.jpg",
-    category: "Frontend",
-    date: "Oct 27, 2025",
-    readTime: 9,
-    likes: 356,
-    liked: false,
-  },
-];
+
+const getCoverImage = (content: string): string => {
+  const imgMatch = content.match(/<img[^>]+src=["'](.*?)["']/i);
+  return imgMatch ? imgMatch[1] : "/placeholder.svg";
+};
 
 const ExplorePage: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [likedArticles, setLikedArticles] = useState<Set<number>>(new Set());
-  const [bookmarkedArticles, setBookmarkedArticles] = useState<Set<number>>(new Set());
-  const [filteredArticles, setFilteredArticles] = useState(allArticles);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const searchQuery = searchParams.get("search") || "";
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [totalArticles, setTotalArticles] = useState(0);
+  const itemsPerPage = 12;
+
+  const { data: categoriesData, isLoading: isCategoriesLoading } = useGetCategoriesQuery({});
+  const categories = categoriesData ? ["All", ...categoriesData] : ["All"];
+
+  const { data, isLoading } = useSearchArticlesQuery(
+    {
+      query: searchQuery,
+      page: currentPage,
+      category: selectedCategory !== "All" ? selectedCategory : undefined,
+    },
+    { skip: isCategoriesLoading }
+  );
+
+  const [addLike] = useAddLikeMutation();
 
   useEffect(() => {
-    const query = searchParams.get("search") || "";
-    const filtered = allArticles.filter((article) => {
-      const matchesSearch =
-        article.title.toLowerCase().includes(query.toLowerCase()) ||
-        article.about.toLowerCase().includes(query.toLowerCase()) ||
-        article.author.toLowerCase().includes(query.toLowerCase());
-      const matchesCategory = selectedCategory === "All" || article.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    });
-    setFilteredArticles(filtered);
-  }, [selectedCategory, searchParams]);
-
-
-  const toggleLike = (articleId: number) => {
-    const newLiked = new Set(likedArticles);
-    if (newLiked.has(articleId)) {
-      newLiked.delete(articleId);
-    } else {
-      newLiked.add(articleId);
+    if (data) {
+      setArticles(data.articles.map((art: Article) => ({ ...art, isLiked: art.isLiked })));
+      setTotalArticles(data.totalArticles);
+      setCurrentPage(data.currentPage);
     }
-    setLikedArticles(newLiked);
+  }, [data]);
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(1);
   };
 
-  const toggleBookmark = (articleId: number) => {
-    const newBookmarked = new Set(bookmarkedArticles);
-    if (newBookmarked.has(articleId)) {
-      newBookmarked.delete(articleId);
-    } else {
-      newBookmarked.add(articleId);
-    }
-    setBookmarkedArticles(newBookmarked);
+  const clearSearch = () => {
+    setSearchParams({}, { replace: true });
+    setCurrentPage(1);
   };
 
-  const categories = ["All", "Technology", "Development", "Backend", "Frontend", "DevOps"];
+  const toggleLike = async (articleId: string) => {
+    try {
+      await addLike({ articleId }).unwrap();
+      setArticles(prev =>
+        prev.map(a =>
+          a._id === articleId ? { ...a, isLiked: !a.isLiked } : a
+        )
+      );
+      toast.success(`Article ${articles.find(a => a._id === articleId)?.isLiked ? "unliked" : "liked"}!`);
+    } catch (error: any) {
+
+      if (error.status === 401) {
+        toast('Login to like article', {
+          action: {
+            label: 'Login',
+            onClick: () => navigate('/login'),
+          },
+        });
+      } else {
+        toast.error(error.data?.message || "Failed to toggle like");
+      }
+    }
+  };
+
+  const totalPages = Math.ceil(totalArticles / itemsPerPage);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
-
-
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative z-10">
-        {/* Page Title */}
+      <main className="max-w-6xl mx-auto px-4 py-8 sm:py-12">
+        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
-            {searchParams.get("search") ? `Search results for "${searchParams.get("search")}"` : "Explore Articles"}
-          </h1>
-          <p className="text-slate-400">
-            {filteredArticles.length} {filteredArticles.length === 1 ? "article" : "articles"} found
-          </p>
-        </div>
-        {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 font-medium text-sm ${category === selectedCategory
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
-                  : "bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700"
-                }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-        {/* Articles Grid or Empty State */}
-        {filteredArticles.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredArticles.map((article) => (
-              <article
-                key={article.id}
-                className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl overflow-hidden hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300 flex flex-col"
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
+              {searchQuery ? `Search: "${searchQuery}"` : "Explore Articles"}
+            </h1>
+            {searchQuery && (
+              <button
+                onClick={clearSearch}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-all"
+                aria-label="Clear search query"
               >
-                <div className="h-40 bg-linear-to-br from-blue-600/20 to-slate-700 group-hover:from-blue-600/30 group-hover:to-slate-600 transition-all duration-300 relative overflow-hidden flex items-center justify-center">
-                  <div className="text-4xl opacity-20 group-hover:opacity-30 transition-opacity">✎</div>
-                </div>
-                <div className="p-4 sm:p-6 flex-1 flex flex-col">
-                  <div className="flex items-center gap-3 mb-4">
-                    <img
-                      src={article.avatar || "/placeholder.svg"}
-                      alt={article.author}
-                      className="w-8 h-8 rounded-full bg-slate-700 object-cover"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs sm:text-sm font-semibold text-white truncate">{article.author}</p>
-                      <p className="text-xs text-slate-400">{article.date}</p>
-                    </div>
-                  </div>
-                  <h3 className="text-base sm:text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors">
-                    <Link to={`/article/${article.id}`}>{article.title}</Link>
-                  </h3>
-                  <p className="text-sm text-slate-400 mb-4 line-clamp-2 flex-1">{article.about}</p>
-                  <div className="flex items-center justify-between text-xs text-slate-400 mb-4 pb-4 border-b border-slate-700/50">
-                    <span>{article.category}</span>
-                    <span>{article.readTime} min read</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => toggleLike(article.id)}
-                        className="flex items-center gap-1 text-slate-400 hover:text-red-400 transition-colors"
-                      >
-                        <Heart className="w-4 h-4" fill={likedArticles.has(article.id) ? "currentColor" : "none"} />
-                        <span className="text-xs">{article.likes}</span>
-                      </button>
-                      <button className="text-slate-400 hover:text-blue-400 transition-colors">
-                        <MessageCircle className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <button
-                      onClick={() => toggleBookmark(article.id)}
-                      className="text-slate-400 hover:text-blue-400 transition-colors"
-                    >
-                      <Bookmark
-                        className="w-4 h-4"
-                        fill={bookmarkedArticles.has(article.id) ? "currentColor" : "none"}
-                      />
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
+                <X className="w-4 h-4" />
+                Clear Search
+              </button>
+            )}
           </div>
+          <p className="text-slate-400 text-sm">{totalArticles} articles found</p>
+        </div>
+
+        <div className="mb-8 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 whitespace-nowrap pb-2">
+            {isCategoriesLoading ? (
+              <p className="text-slate-400">Loading categories...</p>
+            ) : (
+              categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => handleCategoryChange(cat)}
+                  className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-200 ${cat === selectedCategory
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                    }`}
+                >
+                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Articles Grid */}
+        {isLoading ? (
+          <div className="text-white text-center py-8 flex items-center justify-center">
+            <svg className="animate-spin h-8 w-8 text-blue-500 mr-3" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            </svg>
+            Loading articles...
+          </div>
+        ) : articles.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              {articles.map(article => (
+                <article
+                  key={article._id}
+                  className="bg-slate-800/70 border border-slate-700 rounded-xl flex flex-col hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300 cursor-pointer"
+                  onClick={() => navigate(`/article/${article._id}`)}
+                >
+                  <img
+                    src={getCoverImage(article.content)}
+                    alt={article.title}
+                    className="h-48 w-full object-cover rounded-t-xl"
+                    onError={(e) => (e.currentTarget.src = "/placeholder.svg")}
+                  />
+                  <div className="p-6 flex flex-col flex-1">
+                    <div className="flex items-center gap-3 mb-4">
+                      <img
+                        src={`https://res.cloudinary.com/lexica/image/upload/${article.authorId.avatar}`}
+                        alt={article.authorId.name}
+                        className="w-10 h-10 rounded-full object-cover border border-slate-600"
+                        onError={(e) => (e.currentTarget.src = "/placeholder.svg")}
+                      />
+                      <div>
+                        <p className="text-sm font-semibold text-white">{article.authorId.name}</p>
+                        <p className="text-xs text-slate-400">{new Date(article.createdAt).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2 hover:text-blue-400 transition-colors line-clamp-2">
+                      {article.title}
+                    </h3>
+                    <p className="text-sm text-slate-400 mb-4 flex-1 line-clamp-3">{article.about}</p>
+                    <div className="flex justify-between text-xs text-slate-400 mb-4">
+                      <span className="capitalize">{article.category}</span>
+                      <span>{article.views} views</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleLike(article._id);
+                          }}
+                          className="text-red-500 hover:text-red-600 transition-colors"
+                          aria-label={article.isLiked ? "Unlike article" : "Like article"}
+                        >
+                          <Heart className="w-5 h-5" fill={article.isLiked ? "currentColor" : "none"} />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/article/${article._id}`);
+                          }}
+                          className="text-slate-400 hover:text-blue-400 transition-colors"
+                          aria-label="View comments"
+                        >
+                          <MessageCircle className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mb-12">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-3 rounded-full bg-slate-800 disabled:opacity-50 hover:bg-blue-600 text-white transition-all"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <div className="flex gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${page === currentPage
+                        ? "bg-blue-600 text-white"
+                        : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-3 rounded-full bg-slate-800 disabled:opacity-50 hover:bg-blue-600 text-white transition-all"
+                  aria-label="Next page"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">🔍</div>
             <h2 className="text-2xl font-bold text-white mb-2">No articles found</h2>
-            <p className="text-slate-400 mb-6">Try adjusting your search query or selecting different categories</p>
             <Link
               to="/"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-300"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Home
+              <ArrowLeft className="w-4 h-4" /> Back to Home
             </Link>
           </div>
         )}
       </main>
       <Footer />
-      {/* Decorative blur */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
-      </div>
     </div>
   );
-}
+};
 
-
-export default ExplorePage
+export default ExplorePage;

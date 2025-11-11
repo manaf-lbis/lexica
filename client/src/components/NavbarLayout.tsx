@@ -1,4 +1,4 @@
-import { Menu, Plus, Search, User, X, LogIn, Home, Compass, Bookmark, Settings, Flame, LogOut } from "lucide-react"
+import { Menu, Plus, Search, User, X, LogIn, Home, Compass, LogOut, WandSparkles } from "lucide-react"
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom"
@@ -34,8 +34,8 @@ export default function NavbarLayout() {
       dispatch(logout());
       setUserMenuOpen(false)
       navigate("/")
-      toast.success( "Successfully signed out.")
-    } catch (e : any){
+      toast.success("Successfully signed out.")
+    } catch (e: any) {
       toast.error(e.data?.message || "Failed to sign out. Please try again.")
     }
 
@@ -56,11 +56,9 @@ export default function NavbarLayout() {
   const menuItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: Compass, label: "Explore", path: "/explore" },
-    { icon: Flame, label: "Trending", path: "/trending" },
     ...(isAuthenticated
       ? [
-        { icon: Bookmark, label: "Saved", path: "/saved" },
-        { icon: Settings, label: "Settings", path: "/settings" },
+        { icon: WandSparkles, label: "My Articles", path: "/my-articles" },
       ]
       : []),
   ]
@@ -109,8 +107,8 @@ export default function NavbarLayout() {
               to={item.path}
               onClick={() => setSidebarOpen(false)}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group relative ${isActive(item.path)
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
                 }`}
               title={!sidebarHovered ? item.label : ""}
             >
@@ -227,20 +225,12 @@ export default function NavbarLayout() {
                         <span className="text-sm font-medium">Profile</span>
                       </Link>
                       <Link
-                        to="/settings"
+                        to="/my-articles"
                         onClick={() => setUserMenuOpen(false)}
                         className="flex items-center gap-3 px-4 py-3 text-slate-200 hover:bg-slate-700 transition-colors"
                       >
-                        <Settings className="w-4 h-4" />
-                        <span className="text-sm font-medium">Settings</span>
-                      </Link>
-                      <Link
-                        to="/change-password"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-slate-200 hover:bg-slate-700 transition-colors border-t border-slate-700"
-                      >
-                        <Settings className="w-4 h-4" />
-                        <span className="text-sm font-medium">Change Password</span>
+                        <WandSparkles className="w-4 h-4" />
+                        <span className="text-sm font-medium">My Articles</span>
                       </Link>
                       <button
                         onClick={handleLogout}

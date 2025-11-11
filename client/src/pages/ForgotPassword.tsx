@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
   };
 
   const validatePassword = (password: string): boolean => {
-    return password.length >= 8;
+    return password.length >= 6;
   };
 
   // Step 1: Send OTP to email
@@ -93,7 +93,6 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  // Step 3: Reset Password
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -103,7 +102,7 @@ export default function ForgotPasswordPage() {
     if (!form.password.trim()) {
       newErrors.password = "New password is required";
     } else if (!validatePassword(form.password)) {
-      newErrors.password = "Password must be at least 8 characters long";
+      newErrors.password = "Password must be at least 6 characters long";
     }
     if (!form.confirmPassword.trim()) {
       newErrors.confirmPassword = "Please confirm your password";

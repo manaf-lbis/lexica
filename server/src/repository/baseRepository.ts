@@ -8,6 +8,10 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
     this._model = model;
   }
 
+  async find(query: any): Promise<T[]> {
+    return await this._model.find(query).exec();
+  }
+
   async create(item: Partial<T>): Promise<T> {
     const newItem = new this._model(item);
     return await newItem.save();

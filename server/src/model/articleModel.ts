@@ -25,8 +25,7 @@ const articleSchema = new Schema<IArticle>({
         default: ArticleCategories.General,
     },
     coverImage: {
-        url: String,
-        publicId: String,
+        type: String,
     },
     authorId: {
         type: Schema.Types.ObjectId,
@@ -37,6 +36,10 @@ const articleSchema = new Schema<IArticle>({
         type: String,
         enum: Object.values(ArticleStatus),
         index: true,
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false
     },
     views: {
         type: Number,

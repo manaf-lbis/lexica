@@ -1,6 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { authApi } from "../api/authApi";
 import { profileApi } from "../api/profileApi";
+import {articleApi} from "../api/articleApi";
+import { likesAndCommentApi } from "../api/likesAndCommentApi";
 import authReducer from "../slice/authSlice";
 
 export const store = configureStore({
@@ -9,13 +11,17 @@ export const store = configureStore({
 
 
         [authApi.reducerPath]: authApi.reducer,
-        [profileApi.reducerPath]: profileApi.reducer
+        [profileApi.reducerPath]: profileApi.reducer,
+        [articleApi.reducerPath]: articleApi.reducer,
+        [likesAndCommentApi.reducerPath]: likesAndCommentApi.reducer
     },
 
     middleware: (getDefaultMiddleware) => {
         return getDefaultMiddleware().concat(
             authApi.middleware,
-            profileApi.middleware
+            profileApi.middleware,
+            articleApi.middleware,
+            likesAndCommentApi.middleware
 
         )
     }
