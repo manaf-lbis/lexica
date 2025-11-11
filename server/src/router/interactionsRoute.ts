@@ -16,7 +16,7 @@ const interactionController = new InteractionController(interactionService)
 
 
 router.get('/:id/comments', interactionController.viewComments.bind(interactionController))
-router.post('/like', authentication, interactionController.addLike.bind(interactionController))
+router.post('/:id/like', authentication, interactionController.addLike.bind(interactionController))
 router.post('/:id/comment', authentication, interactionController.addComment.bind(interactionController))
 
 

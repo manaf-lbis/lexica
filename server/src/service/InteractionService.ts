@@ -16,8 +16,15 @@ export class InteractionService implements IInteractionService {
         return await this._commentRepository.create({userId, articleId, comment})
     }
 
-    async addLike(userId: Types.ObjectId, articleId: Types.ObjectId): Promise<any> {
-        return await this._likeRepository.create({userId, articleId,isLiked: true})
+    async toggleLike(userId: Types.ObjectId, articleId: Types.ObjectId): Promise<any> {
+        const isLiked = await this._likeRepository.find({ userId, articleId });
+
+        if(isLiked.length > 0) {
+            await this._likeRepository.delete(isLiked[0]._id);
+        } else {
+            await this._likeRepository.create({ userId, articleId });
+        }
+        
     }
 
     async viewComments(articleId: Types.ObjectId): Promise<any> {

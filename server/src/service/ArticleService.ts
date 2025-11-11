@@ -3,11 +3,13 @@ import { IArticleService } from "./interface/IArticleService";
 import { IArticleRepository } from "../repository/interface/IArticleRepository";
 import { uploadToCloudinary } from "../utils/cloudinaryUtility";
 import ApiError from "../utils/apiError";
+import { ILikeRepository } from "../repository/interface/ILikeRepository";
 
 export class ArticleService implements IArticleService {
 
     constructor(
-        private _articleRepository: IArticleRepository
+        private _articleRepository: IArticleRepository,
+        private _likeRepository: ILikeRepository
 
     ) { }
 
@@ -35,14 +37,15 @@ export class ArticleService implements IArticleService {
         return await this._articleRepository.getTrending();
     };
 
-    async getArticleById(id: Types.ObjectId): Promise<any> {
+    async getArticleById(id: Types.ObjectId, userId?: Types.ObjectId): Promise<any> {
         const article = await this._articleRepository.findByIdUpdateAndReturn(id);
         if (!article) throw new ApiError("Article not found", 404);
+
         if (article.isBlocked) throw new ApiError("Article is blocked by author only Edit Preview is allowed.", 404);
         const recomendations = await this._articleRepository.findArticlesForRecomentation(article.category, article._id);
+        const isLiked = await this._likeRepository.checkIsLiked(article._id, userId)
 
-
-        return { article, recomendations };
+        return { article:{...article, isLiked}, recomendations };
     }
 
     async getArticleForEdit(articleId: Types.ObjectId, userId: Types.ObjectId): Promise<any> {

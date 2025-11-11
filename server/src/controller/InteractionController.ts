@@ -35,7 +35,7 @@ export class InteractionController {
 
             await this._interactionService.addComment(userId!, new Types.ObjectId(articleId as string), comment.trim());
             sendSuccess(res, {}, "Comment added successfully");
-            
+
         } catch (error) {
             next(error);
         }
@@ -43,10 +43,10 @@ export class InteractionController {
 
     async addLike(req: Request, res: Response, next: Function) {
         try {
-            const { articleId } = req.body;
+            const  articleId  = req.params.id
             if (!articleId) throw new ApiError("Invalid article id");
             const userId = req.user?.userId;
-            await this._interactionService.addLike(userId!, new Types.ObjectId(articleId!));
+            await this._interactionService.toggleLike(userId!, new Types.ObjectId(articleId!));
             sendSuccess(res, {}, "Like added successfully");
         } catch (error) {
             next(error);

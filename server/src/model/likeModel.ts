@@ -17,7 +17,7 @@ const likeSchema = new Schema<ILike>({
   isLiked: {
     type: Boolean,
     default: true
-  }
+  },
 
 }, { timestamps: true });
 

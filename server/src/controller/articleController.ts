@@ -4,6 +4,7 @@ import { ArticleCategories } from "../constants/categories";
 import { sendSuccess } from "../utils/apiSuccess";
 import { IArticleService } from "../service/interface/IArticleService";
 import ApiError from "../utils/apiError";
+import { fetchUserIfAuthenticated } from "../utils/getUserId";
 
 export class ArticleController {
     constructor(
@@ -66,9 +67,11 @@ export class ArticleController {
     async getArticleById(req: Request, res: Response, next: NextFunction) {
         try {
             const { id } = req.params;
+            const user = await fetchUserIfAuthenticated(req);
+
             if (!isValidObjectId(id)) throw new ApiError("Invalid article id");
             const articleId = new Types.ObjectId(id);
-            const article = await this._articleService.getArticleById(articleId);
+            const article = await this._articleService.getArticleById(articleId, user?.userId);
             sendSuccess(res, article, "Article fetched successfully");
         } catch (error) {
             next(error);

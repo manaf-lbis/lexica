@@ -6,7 +6,8 @@ import { useGetArticleByIdQuery } from "../api/articleApi"
 import { getCloudinaryImage } from "../utils/cloudinaryUrl"
 import { formatDistanceToNow } from "date-fns"
 import NotFound from "./PagenNotFound"
-import { useAddCommentMutation, useViewCommentsQuery } from "../api/likesAndCommentApi"
+import { useAddCommentMutation, useViewCommentsQuery,useAddLikeMutation } from "../api/likesAndCommentApi"
+import { toast } from "sonner"
 
 interface Author {
   _id: string
@@ -31,6 +32,7 @@ interface Comment {
   },
   comment: string
   createdAt: string
+  isLiked: boolean
 }
 interface ArticleResponse {
   article: Article
@@ -120,18 +122,19 @@ const CommentCard = ({ comment }: { comment: Comment }) => {
 
 export default function ArticleReader() {
   const params = useParams<{ id: string }>()
-  const [liked, setLiked] = useState(false)
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [newComment, setNewComment] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null!)
-  const [isPostingComment, setIsPostingComment] = useState(false)
+  const [isPostingComment, setIsPostingComment] = useState(false);
+  const [addLike] = useAddLikeMutation()
 
-  const { data, isLoading, error } = useGetArticleByIdQuery(params.id || "")
+  const { data, isLoading, error ,refetch} = useGetArticleByIdQuery(params.id || "")
   const { article, recomendations } = (data || {}) as ArticleResponse
   const { data: comments, isLoading: commentsLoading } = useViewCommentsQuery({ articleId: params.id || "" })
-  const [addComment] = useAddCommentMutation()
-  const navigate = useNavigate()
+  const [addComment] = useAddCommentMutation();
+  
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024)
@@ -173,6 +176,15 @@ export default function ArticleReader() {
     }
   }
 
+  const handleLike = async () => {
+    try {
+      await addLike({ articleId: params.id || "" }).unwrap()
+      await refetch()
+    }catch (error:any) {
+      toast.error(error.data?.message || "Failed to like article" )
+    }
+  }
+
   if (isLoading || commentsLoading) return <Loader2 className="animate-spin mx-auto mt-20" />
   if (error) return <NotFound message={(error as any)?.data?.message} />
 
@@ -201,13 +213,13 @@ export default function ArticleReader() {
                 <span className="text-xs sm:text-sm font-medium">{article.views}</span>
               </button>
               <button
-                onClick={() => setLiked(!liked)}
+                onClick={handleLike}
                 className="p-2 rounded-lg hover:bg-slate-800 transition-colors"
                 aria-label="Like article"
               >
                 <Heart
                   size={20}
-                  className={`transition-all ${liked ? "fill-red-500 text-red-500" : "text-slate-400 hover:text-red-400"}`}
+                  className={`transition-all ${article?.isLiked ? "fill-red-500 text-red-500" : "text-slate-400 hover:text-red-400"}`}
                 />
               </button>
               <button

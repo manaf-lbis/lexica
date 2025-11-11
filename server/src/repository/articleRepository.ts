@@ -14,9 +14,9 @@ export class ArticleRepository extends BaseRepository<IArticle> implements IArti
         return await ArticleModel.find({isBlocked: false}).populate('authorId', 'name avatar -_id').limit(6);
     };
 
-    async findByIdUpdateAndReturn(id: Types.ObjectId): Promise<IArticle | null> {
+    async findByIdUpdateAndReturn(id: Types.ObjectId): Promise<any> {
         return await ArticleModel.findOneAndUpdate({ _id: id }, { $inc: { views: 1 } }, { new: true })
-            .populate('authorId', 'name avatar -_id');
+            .populate('authorId', 'name avatar -_id').lean();
     }
 
     async findArticlesForRecomentation(category: string, dontRecomentId: Types.ObjectId): Promise<IArticle[]> {

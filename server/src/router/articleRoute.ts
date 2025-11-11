@@ -3,9 +3,11 @@ import { ArticleController } from '../controller/articleController';
 import { authentication } from '../middleware/authentication';
 import { ArticleService } from '../service/ArticleService';
 import { ArticleRepository } from '../repository/articleRepository';
+import { LikeRepository } from '../repository/likeRepository';
 
 const articleRepository = new ArticleRepository()
-const articleService = new ArticleService(articleRepository)
+const likeRepository = new LikeRepository()
+const articleService = new ArticleService(articleRepository, likeRepository)
 const articleController = new ArticleController(articleService)
 
 const router = Router();
