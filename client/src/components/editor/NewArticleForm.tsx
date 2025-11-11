@@ -3,6 +3,7 @@ import { Send, Eye, EyeOff } from "lucide-react"
 import TipTapEditor from "./TipTapEditor"
 import { useGetCategoriesQuery, usePublishMutation } from "../../api/articleApi"
 import { toast } from "sonner"
+import { useNavigate } from "react-router-dom"
 
 
 
@@ -14,19 +15,16 @@ export default function NewArticleForm() {
   const [isPreview, setIsPreview] = useState(false)
   const { data: categories, isLoading} = useGetCategoriesQuery({});
   const [publish, { isLoading: isPublishing }] = usePublishMutation();
+  const navigate = useNavigate();
 
   const handlePublish = async () => {
     try {
       await publish({ title, about, content, category }).unwrap()
       toast.success("Article published successfully.");
+      navigate(`/my-articles`, { replace: true });
     } catch (error:any) {
       toast.error(error.data?.message || "Failed to publish article. Please try again.");
     }
-  }
-
-  const handleSaveDraft = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
   }
 
   if (isLoading) {
@@ -204,13 +202,13 @@ export default function NewArticleForm() {
 
       {/* Action Buttons */}
       <div className="flex gap-3 pt-6 border-t border-slate-700">
-        <button
+        {/* <button
           onClick={handleSaveDraft}
           disabled={isPublishing}
           className="px-6 py-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white font-semibold rounded-lg transition-all duration-300"
         >
           Save Draft
-        </button>
+        </button> */}
         <button
           onClick={handlePublish}
           disabled={isPublishing || !title.trim()}

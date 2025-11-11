@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { Plus } from "lucide-react"
 import Footer from "../components/Footer"
 import ArticleCard from "../components/ArticleCard"
-import { useGetCategoriesQuery, useTrendingArticlesQuery } from "../api/articleApi"
+import { useTrendingArticlesQuery } from "../api/articleApi"
 import { getCoverImage } from "../utils/getCoverImage"
 import { getCloudinaryImage } from "../utils/cloudinaryUrl"
 import { formatDistanceToNow } from "date-fns"
@@ -12,7 +12,6 @@ const HomePage: React.FC = () => {
 
   const [likedArticles, setLikedArticles] = useState<Set<number>>(new Set())
   const [bookmarkedArticles, setBookmarkedArticles] = useState<Set<number>>(new Set())
-  const { data: categories } = useGetCategoriesQuery({});
   const { data: trendingArticles } = useTrendingArticlesQuery({});
   const navigate = useNavigate();
 
@@ -64,22 +63,8 @@ const HomePage: React.FC = () => {
           </Link>
         </div>
 
-        {/* Category Tags */}
-        <div className="flex flex-wrap gap-2 mb-12 sm:mb-16 justify-center">
-          {categories && categories.map((category: string) => (
-            <button
-              key={category}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 font-medium text-sm ${category === "All"
-                ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
-                : "bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700"
-                }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-
         {/* Articles Grid */}
+        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-8">Topics For You</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {trendingArticles && trendingArticles.map((article: any) => (
             <ArticleCard
@@ -105,35 +90,10 @@ const HomePage: React.FC = () => {
           ))}
         </div>
 
-        {/* For You Section */}
-        <div className="mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-8">For You</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* {forYouArticles.map((article) => (
-              <ArticleCard
-                article={{
-                  _id: article.id + '',
-                  title: article.title,
-                  about: article.about,
-                  author: article.author,
-                  avatar: article.avatar,
-                  category: article.category,
-                  date: article.date,
-                  likes: article.likes,
-                }}
-                isLiked={likedArticles.has(article.id)}
-                isBookmarkedArticles={bookmarkedArticles.has(article.id)}
-                toggleBookmark={() => toggleBookmark(article.id)}
-                toggleLike={() => toggleLike(article.id)}
-                onCommentClick={() => console.log("Comment Click")}
-              />
-            ))} */}
-          </div>
-        </div>
 
         {/* Load More */}
         <div className="flex justify-center mb-12">
-          <button className="px-8 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold rounded-lg transition-all duration-300">
+          <button onClick={()=>navigate('/explore')} className="px-8 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold rounded-lg transition-all duration-300">
             Load More Articles
           </button>
         </div>

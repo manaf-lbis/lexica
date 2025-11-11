@@ -6,4 +6,9 @@ export interface IArticleService {
     uploadImage(image: string): Promise<{publicId: string}>
     getTrendingArticles(): Promise<any>
     getArticleById(id: Types.ObjectId): Promise<any>
+    getArticleForEdit(articleId: Types.ObjectId, userId: Types.ObjectId): Promise<any>
+    updateArticle(userId: Types.ObjectId, articleId: Types.ObjectId, title: string, about: string, category: string, content: string): Promise<any>
+    visiblityToggle(userId: Types.ObjectId, articleId: Types.ObjectId, visibility: boolean): Promise<any>
+    getMyArticles(userId: Types.ObjectId,page: number): Promise<any>
+
 }
