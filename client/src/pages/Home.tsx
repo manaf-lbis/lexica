@@ -1,41 +1,61 @@
-import React, { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { Plus } from "lucide-react"
-import Footer from "../components/Footer"
-import ArticleCard from "../components/ArticleCard"
-import { useTrendingArticlesQuery } from "../api/articleApi"
-import { getCoverImage } from "../utils/getCoverImage"
-import { getCloudinaryImage } from "../utils/cloudinaryUrl"
-import { formatDistanceToNow } from "date-fns"
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Plus, Heart, MessageCircle } from "lucide-react";
+import Footer from "../components/Footer";
+import { useTrendingArticlesQuery } from "../api/articleApi";
+import { useAddLikeMutation } from "../api/likesAndCommentApi";
+import { getCoverImage } from "../utils/getCoverImage";
+import { getCloudinaryImage } from "../utils/cloudinaryUrl";
+import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
+
+interface Article {
+  _id: string;
+  title: string;
+  about: string;
+  content: string;
+  category: string;
+  authorId: { name: string; avatar: string };
+  views: number;
+  createdAt: string;
+  isLiked: boolean;
+}
 
 const HomePage: React.FC = () => {
-
-  const [likedArticles, setLikedArticles] = useState<Set<number>>(new Set())
-  const [bookmarkedArticles, setBookmarkedArticles] = useState<Set<number>>(new Set())
+  const [articles, setArticles] = useState<Article[]>([]);
   const { data: trendingArticles } = useTrendingArticlesQuery({});
+  const [addLike] = useAddLikeMutation();
   const navigate = useNavigate();
 
-
-
-  const toggleLike = (articleId: number) => {
-    const newLiked = new Set(likedArticles)
-    if (newLiked.has(articleId)) {
-      newLiked.delete(articleId)
-    } else {
-      newLiked.add(articleId)
+  React.useEffect(() => {
+    if (trendingArticles) {
+      setArticles(trendingArticles.map((art: Article) => ({ ...art, isLiked: art.isLiked })));
     }
-    setLikedArticles(newLiked)
-  }
+  }, [trendingArticles]);
 
-  const toggleBookmark = (articleId: number) => {
-    const newBookmarked = new Set(bookmarkedArticles)
-    if (newBookmarked.has(articleId)) {
-      newBookmarked.delete(articleId)
-    } else {
-      newBookmarked.add(articleId)
+  const toggleLike = async (articleId: string) => {
+    try {
+      await addLike({ articleId }).unwrap();
+      setArticles(prevArticles =>
+        prevArticles.map(a =>
+          a._id === articleId ? { ...a, isLiked: !a.isLiked } : a
+        )
+      );
+      toast.success(`Article ${articles.find(a => a._id === articleId)?.isLiked ? "unliked" : "liked"}!`);
+    } catch (error: any) {
+
+      if (error.status === 401) {
+        toast('Login to like article', {
+          action: {
+            label: 'Login',
+            onClick: () => navigate('/login'),
+          },
+        });
+      } else {
+        toast.error(error.data?.message || "Failed to toggle like");
+      }
     }
-    setBookmarkedArticles(newBookmarked)
-  }
+  };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -66,34 +86,72 @@ const HomePage: React.FC = () => {
         {/* Articles Grid */}
         <h2 className="text-3xl sm:text-4xl font-bold text-white mb-8">Topics For You</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          {trendingArticles && trendingArticles.map((article: any) => (
-            <ArticleCard
+          {articles?.map((article: Article) => (
+            <article
               key={article._id}
-              article={{
-                _id: article._id,
-                title: article.title,
-                about: article.about,
-                author: article.authorId?.name,
-                avatar: getCloudinaryImage(article.authorId?.avatar),
-                category: article.category,
-                date: formatDistanceToNow(new Date(article.createdAt), { addSuffix: true }),
-                likes: article.likes,
-                coverImage: getCoverImage(article.content),
-              }}
-              isLiked={likedArticles.has(article.id)}
-              isBookmarkedArticles={bookmarkedArticles.has(article.id)}
-              toggleBookmark={() => toggleBookmark(article.id)}
-              toggleLike={() => toggleLike(article.id)}
-              onCommentClick={() => console.log("Comment Click")}
+              className="bg-slate-800/50 border border-slate-700 rounded-xl flex flex-col hover:border-blue-500 transition-all cursor-pointer"
               onClick={() => navigate(`/article/${article._id}`)}
-            />
+            >
+              <img
+                src={getCoverImage(article.content)}
+                alt={article.title}
+                className="h-40 w-full object-cover rounded-t-xl"
+                onError={(e) => (e.currentTarget.src = "/placeholder.svg")}
+              />
+              <div className="p-6 flex flex-col flex-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <img
+                    src={getCloudinaryImage(article.authorId.avatar)}
+                    alt={article.authorId.name}
+                    className="w-8 h-8 rounded-full object-cover"
+                    onError={(e) => (e.currentTarget.src = "/placeholder.svg")}
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-white">{article.authorId.name}</p>
+                    <p className="text-xs text-slate-400">{formatDistanceToNow(new Date(article.createdAt), { addSuffix: true })}</p>
+                  </div>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2 hover:text-blue-400">{article.title}</h3>
+                <p className="text-sm text-slate-400 mb-4 flex-1 line-clamp-3">{article.about}</p>
+                <div className="flex justify-between text-xs text-slate-400 mb-4">
+                  <span>{article.category}</span>
+                  <span>{article.views} views</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleLike(article._id);
+                      }}
+                      className="text-red-500 hover:text-red-600 transition-colors"
+                      aria-label={article.isLiked ? "Unlike article" : "Like article"}
+                    >
+                      <Heart className="w-4 h-4" fill={article.isLiked ? "currentColor" : "none"} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/article/${article._id}`);
+                      }}
+                      className="text-slate-400 hover:text-blue-400 transition-colors"
+                      aria-label="View comments"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </article>
           ))}
         </div>
 
-
         {/* Load More */}
         <div className="flex justify-center mb-12">
-          <button onClick={()=>navigate('/explore')} className="px-8 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold rounded-lg transition-all duration-300">
+          <button
+            onClick={() => navigate("/explore")}
+            className="px-8 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold rounded-lg transition-all duration-300"
+          >
             Load More Articles
           </button>
         </div>
@@ -101,8 +159,7 @@ const HomePage: React.FC = () => {
 
       <Footer />
     </div>
-  )
-}
+  );
+};
 
-
-export default HomePage
+export default HomePage;

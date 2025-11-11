@@ -57,7 +57,8 @@ export class ArticleController {
 
     async getTrendingArticles(req: Request, res: Response, next: NextFunction) {
         try {
-            const articles = await this._articleService.getTrendingArticles();
+            const user = await fetchUserIfAuthenticated(req);
+            const articles = await this._articleService.getTrendingArticles(user?.userId);
             sendSuccess(res, articles, "Articles fetched successfully");
         } catch (error) {
             next(error);
@@ -131,6 +132,21 @@ export class ArticleController {
             const userId = req.user?.userId;
             const page = Number(req.query?.page) || 1
             const articles = await this._articleService.getMyArticles(userId!, page);
+            sendSuccess(res, articles, "Articles fetched successfully");
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async searchArticles(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { query, category } = req.query;
+            const page = Number(req.query?.page) || 1
+            const user = await fetchUserIfAuthenticated(req);
+
+            const articles = await this._articleService.searchArticles(query as string, page, user?.userId,category as string);
+
+
             sendSuccess(res, articles, "Articles fetched successfully");
         } catch (error) {
             next(error);

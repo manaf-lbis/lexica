@@ -1,4 +1,4 @@
-import { Menu, Plus, Search, User, X, LogIn, Home, Compass, Bookmark, Flame, LogOut, WandSparkles } from "lucide-react"
+import { Menu, Plus, Search, User, X, LogIn, Home, Compass, LogOut, WandSparkles } from "lucide-react"
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom"
@@ -56,10 +56,8 @@ export default function NavbarLayout() {
   const menuItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: Compass, label: "Explore", path: "/explore" },
-    { icon: Flame, label: "Trending", path: "/trending" },
     ...(isAuthenticated
       ? [
-        { icon: Bookmark, label: "Saved", path: "/saved" },
         { icon: WandSparkles, label: "My Articles", path: "/my-articles" },
       ]
       : []),

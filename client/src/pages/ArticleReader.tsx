@@ -6,7 +6,7 @@ import { useGetArticleByIdQuery } from "../api/articleApi"
 import { getCloudinaryImage } from "../utils/cloudinaryUrl"
 import { formatDistanceToNow } from "date-fns"
 import NotFound from "./PagenNotFound"
-import { useAddCommentMutation, useViewCommentsQuery,useAddLikeMutation } from "../api/likesAndCommentApi"
+import { useAddCommentMutation, useViewCommentsQuery, useAddLikeMutation } from "../api/likesAndCommentApi"
 import { toast } from "sonner"
 
 interface Author {
@@ -21,6 +21,7 @@ interface Article {
   category: string
   content: string
   authorId: Author
+  isLiked: boolean
   views: number
   createdAt: string
 }
@@ -95,14 +96,22 @@ const CommentCard = ({ comment }: { comment: Comment }) => {
   return (
     <div className="p-4 rounded-lg border border-slate-700 bg-slate-800/50 hover:bg-slate-800/70 transition-all duration-200">
       <div className="flex items-center gap-3 mb-2">
+
+        {comment.userId?.avatar ? <img
+          src={getCloudinaryImage(comment.userId?.avatar) || "/placeholder.svg"}
+          alt={`${comment.userId?.name}'s avatar`}
+          className="w-8 h-8 rounded-full bg-slate-700 object-cover"
+        /> :
         <div
           className="w-8 h-8 rounded-full bg-linear-to-br from-blue-600 to-slate-700 flex items-center justify-center text-white text-xs font-semibold"
-          aria-label={`${comment.userId.name}'s avatar initials`}
+          aria-label={`${comment.userId?.name}'s avatar initials`}
         >
           {comment.userId.name.charAt(0).toUpperCase()}
-        </div>
+        </div>}
+
+
         <div>
-          <p className="text-sm font-semibold text-white">{comment.userId.name}</p>
+          <p className="text-sm font-semibold text-white">{comment.userId?.name}</p>
           <p className="text-xs text-slate-400">
             {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
           </p>
@@ -129,11 +138,11 @@ export default function ArticleReader() {
   const [isPostingComment, setIsPostingComment] = useState(false);
   const [addLike] = useAddLikeMutation()
 
-  const { data, isLoading, error ,refetch} = useGetArticleByIdQuery(params.id || "")
+  const { data, isLoading, error, refetch } = useGetArticleByIdQuery(params.id || "")
   const { article, recomendations } = (data || {}) as ArticleResponse
   const { data: comments, isLoading: commentsLoading } = useViewCommentsQuery({ articleId: params.id || "" })
   const [addComment] = useAddCommentMutation();
-  
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -143,16 +152,15 @@ export default function ArticleReader() {
     return () => window.removeEventListener("resize", checkMobile)
   }, [])
 
-  
 
 
   const getInitials = (name: string) =>
     name
       ? name
-          .split(" ")
-          .slice(0, 2)
-          .map((word) => word.charAt(0).toUpperCase())
-          .join("")
+        .split(" ")
+        .slice(0, 2)
+        .map((word) => word.charAt(0).toUpperCase())
+        .join("")
       : "AN"
 
   const handlePostComment = async () => {
@@ -162,8 +170,18 @@ export default function ArticleReader() {
       await addComment({ articleId: params.id || "", comment: newComment }).unwrap()
       setNewComment("")
       textareaRef.current?.focus()
-    } catch (error) {
-      console.error("Failed to post comment:", error)
+    } catch (error: any) {
+      if (error.status === 401) {
+        toast('Login to comment article', {
+          action: {
+            label: 'Login',
+            onClick: () => navigate('/login'),
+          },
+        });
+      } else {
+        toast.error(error.data?.message || "Failed to toggle like");
+      }
+
     } finally {
       setIsPostingComment(false)
     }
@@ -180,8 +198,18 @@ export default function ArticleReader() {
     try {
       await addLike({ articleId: params.id || "" }).unwrap()
       await refetch()
-    }catch (error:any) {
-      toast.error(error.data?.message || "Failed to like article" )
+    } catch (error: any) {
+      if (error.status === 401) {
+        toast('Login to like article', {
+          action: {
+            label: 'Login',
+            onClick: () => navigate('/login'),
+          },
+        });
+      } else {
+        toast.error(error.data?.message || "Failed to like article")
+      }
+
     }
   }
 
@@ -224,11 +252,10 @@ export default function ArticleReader() {
               </button>
               <button
                 onClick={() => setCommentsOpen(!commentsOpen)}
-                className={`p-2 rounded-lg flex items-center gap-2 transition-colors ${
-                  commentsOpen
-                    ? "bg-blue-500/15 text-blue-400"
-                    : "hover:bg-slate-800 text-slate-400 hover:text-slate-200"
-                }`}
+                className={`p-2 rounded-lg flex items-center gap-2 transition-colors ${commentsOpen
+                  ? "bg-blue-500/15 text-blue-400"
+                  : "hover:bg-slate-800 text-slate-400 hover:text-slate-200"
+                  }`}
                 aria-label="Toggle comments"
               >
                 <MessageSquare size={20} />
@@ -248,16 +275,16 @@ export default function ArticleReader() {
             <div className="flex items-center gap-3 flex-wrap">
               {article.authorId?.avatar ? (
                 <img
-                  src={getCloudinaryImage(article.authorId.avatar) || "/placeholder.svg"}
-                  alt={`${article.authorId.name}'s avatar`}
+                  src={getCloudinaryImage(article.authorId?.avatar) || "/placeholder.svg"}
+                  alt={`${article.authorId?.name}'s avatar`}
                   className="w-8 h-8 rounded-full bg-slate-700 object-cover"
                 />
               ) : (
                 <div
                   className="w-8 h-8 rounded-full bg-linear-to-br from-blue-600 to-slate-700 flex items-center justify-center text-white text-xs font-semibold"
-                  aria-label={`${article.authorId.name}'s avatar initials`}
+                  aria-label={`${article.authorId?.name}'s avatar initials`}
                 >
-                  {getInitials(article.authorId.name)}
+                  {getInitials(article.authorId?.name)}
                 </div>
               )}
               <div>
@@ -304,7 +331,7 @@ export default function ArticleReader() {
                       {suggestedArticle.title}
                     </h3>
                     <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-400 flex-wrap">
-                      <span>{suggestedArticle.authorId.name}</span>
+                      <span>{suggestedArticle.authorId?.name}</span>
                       <span>·</span>
                       <span className="px-2 py-1 rounded bg-slate-800 text-slate-300">{suggestedArticle.category}</span>
                     </div>
@@ -370,3 +397,5 @@ export default function ArticleReader() {
     </div>
   )
 }
+
+

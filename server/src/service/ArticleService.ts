@@ -4,12 +4,14 @@ import { IArticleRepository } from "../repository/interface/IArticleRepository";
 import { uploadToCloudinary } from "../utils/cloudinaryUtility";
 import ApiError from "../utils/apiError";
 import { ILikeRepository } from "../repository/interface/ILikeRepository";
+import { IArticlePrefrenceRepo } from "../repository/interface/IArticlePrefrenceRepo";
 
 export class ArticleService implements IArticleService {
 
     constructor(
         private _articleRepository: IArticleRepository,
-        private _likeRepository: ILikeRepository
+        private _likeRepository: ILikeRepository,
+        private _articelPrefrenceRepository: IArticlePrefrenceRepo
 
     ) { }
 
@@ -29,8 +31,16 @@ export class ArticleService implements IArticleService {
         });
     };
 
-    async getTrendingArticles(): Promise<any> {
-        return await this._articleRepository.getTrending();
+    async getTrendingArticles(userId?: Types.ObjectId): Promise<any> {
+        const likedCategory = await this._articelPrefrenceRepository.find({userId});
+        const articles = await this._articleRepository.getTrending(likedCategory[0]?.prefrence);
+
+        if (userId) {
+            const likes = await Promise.all(articles.map((article:any) => this._likeRepository.checkIsLiked(article._id, userId)));
+            articles.forEach((article :any, i:number) => { (article as any).isLiked = likes[i] });
+        }
+
+        return articles
     };
 
     async readingRecomendation(categories: string): Promise<any> {
@@ -45,7 +55,7 @@ export class ArticleService implements IArticleService {
         const recomendations = await this._articleRepository.findArticlesForRecomentation(article.category, article._id);
         const isLiked = await this._likeRepository.checkIsLiked(article._id, userId)
 
-        return { article:{...article, isLiked}, recomendations };
+        return { article: { ...article, isLiked }, recomendations };
     }
 
     async getArticleForEdit(articleId: Types.ObjectId, userId: Types.ObjectId): Promise<any> {
@@ -79,6 +89,22 @@ export class ArticleService implements IArticleService {
         const stats = await this._articleRepository.myArticlesStats(new Types.ObjectId(userId));
 
         return { itemsPerPage, currrentPage: page, articles, stats };
+    }
+
+
+    async searchArticles(query: string, page: number, userId?: Types.ObjectId, category?: string): Promise<any> {
+        const itemsPerPage = Number(process.env.ITEMS_PER_PAGE);
+        const from = (page - 1) * itemsPerPage;
+        const to = page * itemsPerPage;
+        const { articles, totalArticles } = await this._articleRepository.search(query, from, to, itemsPerPage , category);
+
+        if (userId) {
+            const likes = await Promise.all(articles.map(article => this._likeRepository.checkIsLiked(article._id, userId)));
+
+            articles.forEach((article, i) => { (article as any).isLiked = likes[i] });
+        }
+
+        return { itemsPerPage, currrentPage: page, articles, totalArticles };
     }
 
 

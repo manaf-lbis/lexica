@@ -75,6 +75,24 @@ export const articleApi = createApi({
             invalidatesTags: ["Article"],
         }),
 
+        searchArticles: builder.query<any, { query: string; page: number; category?: string }>({
+            query: (query) => ({
+                url: `/article/search`,
+                params: query,
+            }),
+            transformResponse: (response: any) => response.data,
+            serializeQueryArgs: ({ endpointName }) => endpointName,
+            forceRefetch({ currentArg, previousArg }) {
+                return (
+                    currentArg?.page !== previousArg?.page ||
+                    currentArg?.query !== previousArg?.query ||
+                    currentArg?.category !== previousArg?.category
+                );
+            },
+        }),
+
+
+
 
 
     }),
@@ -90,5 +108,6 @@ export const {
     useEditArticleMutation,
     useGetArticleForEditQuery,
     useArticleVisiblityMutation,
-    useMyArticlesQuery
+    useMyArticlesQuery,
+    useSearchArticlesQuery
 } = articleApi
