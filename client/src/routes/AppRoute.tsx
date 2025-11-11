@@ -63,6 +63,8 @@ import NavbarLayout from '../components/NavbarLayout';
 import React from 'react';
 import ForgotPasswordPage from '../pages/ForgotPassword';
 import ProfilePage from '../pages/ProfilePage';
+import ArticleReader from '../pages/ArticleReader';
+import MyArticles from '../pages/MyArticle';
 
 const AppRoute: React.FC = () => {
   return (
@@ -81,12 +83,14 @@ const AppRoute: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/explore" element={<ExplorePage />} />
           <Route path="/trending" element={<div>Trending Page</div>} />
+          <Route path="/article/:id" element={<ArticleReader />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/saved" element={<div>Saved Page</div>} />
             <Route path="/settings" element={<div>Settings Page</div>} />
             <Route path="/write" element={<Write />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/my-articles" element={<MyArticles />} />
           </Route>
           <Route path="*" element={<HomePage />} />
 

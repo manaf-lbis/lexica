@@ -28,6 +28,15 @@ export const articleApi = createApi({
             }),
         }),
 
+        trendingArticles: builder.query<any, any>({
+            query: () => "/article/trending",
+            transformResponse: (response:any) => response.data
+        }),
+
+        getArticleById: builder.query<any, any>({
+            query: (id) => `/article/${id}`,
+            transformResponse: (response:any) => response.data
+        }),
 
 
     }),
@@ -37,5 +46,7 @@ export const articleApi = createApi({
 export const {
     useImageUploadMutation,
     useGetCategoriesQuery,
-    usePublishMutation
+    usePublishMutation,
+    useTrendingArticlesQuery,
+    useGetArticleByIdQuery
 } = articleApi
