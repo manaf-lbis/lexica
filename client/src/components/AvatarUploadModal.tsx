@@ -1,6 +1,7 @@
 import type React from "react";
 import { useState, useRef, useCallback } from "react";
 import ReactEasyCrop, { type Point, type Area } from "react-easy-crop";
+import { toast } from "sonner";
 
 interface AvatarUploadModalProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ export default function AvatarUploadModal({ isOpen, onClose, onUpload }: AvatarU
     reader.readAsDataURL(file);
   };
 
-  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
+  const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
@@ -75,11 +76,14 @@ export default function AvatarUploadModal({ isOpen, onClose, onUpload }: AvatarU
     try {
       const croppedImage = await getCroppedImg();
       onUpload(croppedImage);
+      toast.success("Avatar uploaded successfully!");
       setImageSrc(null);
       setCrop({ x: 0, y: 0 });
       setZoom(1);
+      onClose(); // Close modal after successful upload
     } catch {
       setError("Failed to process image. Please try again.");
+      toast.error("Failed to upload avatar.");
     } finally {
       setIsLoading(false);
     }
