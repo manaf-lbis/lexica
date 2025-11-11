@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { set } from "mongoose";
+import { isValidObjectId, set, Types } from "mongoose";
 import { ArticleCategories } from "../constants/categories";
 import { sendSuccess } from "../utils/apiSuccess";
 import { IArticleService } from "../service/interface/IArticleService";
@@ -48,6 +48,27 @@ export class ArticleController {
             const article = await this._articleService.createArticle(userId!, title, about, category, content);
             sendSuccess(res, {}, "Article published successfully");
 
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getTrendingArticles(req: Request, res: Response, next: NextFunction) {
+        try {
+            const articles = await this._articleService.getTrendingArticles();
+            sendSuccess(res, articles, "Articles fetched successfully");
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getArticleById(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { id } = req.params;
+            if(!isValidObjectId(id)) throw new Error("Invalid article id");
+            const articleId = new Types.ObjectId(id);
+            const article = await this._articleService.getArticleById(articleId);
+            sendSuccess(res, article, "Article fetched successfully");
         } catch (error) {
             next(error);
         }

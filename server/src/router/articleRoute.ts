@@ -11,8 +11,13 @@ const articleController = new ArticleController(articleService)
 const router = Router();
 
 router.post('/image-upload',authentication, articleController.imageUpload.bind(articleController));
-router.get('/categories',authentication, articleController.getCategories.bind(articleController));
+router.get('/categories', articleController.getCategories.bind(articleController));
 router.post('/publish',authentication, articleController.publish.bind(articleController));
+
+router.get('/trending', articleController.getTrendingArticles.bind(articleController));
+router.get('/:id', articleController.getArticleById.bind(articleController));
+
+
 
 
 

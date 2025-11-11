@@ -16,6 +16,7 @@ export class ArticleService implements IArticleService {
     }
 
     async createArticle(userId: Types.ObjectId, title: string, about: string, category: string, content: string): Promise<any> {
+
         return await this._articleRepository.create({
             authorId: userId,
             title: title,
@@ -24,6 +25,23 @@ export class ArticleService implements IArticleService {
             content: content
         });
     };
+
+    async getTrendingArticles(): Promise<any> {
+        return await this._articleRepository.getTrending();
+    };
+
+    async readingRecomendation(categories: string): Promise<any> {
+        return await this._articleRepository.getTrending();
+    };
+
+    async getArticleById(id: Types.ObjectId): Promise<any> {
+        const article = await this._articleRepository.findByIdUpdateAndReturn(id);
+        if(!article) throw new Error("Article not found");
+        const recomendations = await this._articleRepository.findArticlesForRecomentation(article.category,article._id);
+
+
+        return { article, recomendations };
+    }
 
 
 
