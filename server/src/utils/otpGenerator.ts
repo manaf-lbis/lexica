@@ -1,6 +1,8 @@
+import ApiError from "./apiError";
+
 export const generateOTP = (length: number = 6): string => {
   if (length < 4 || length > 10) {
-    throw new Error("OTP length should be between 4 and 10 digits");
+    throw new ApiError("OTP length should be between 4 and 10 digits");
   }
   const digits = "0123456789";
   let otp = "";

@@ -109,8 +109,8 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
             reader.onerror = () => reject(new Error("Failed to read file"));
             reader.readAsDataURL(file);
           });
-          const result = await imageUpload(base64).unwrap(); // Send base64 string
-          const publicId = result; // Assuming endpoint returns publicId
+          const result = await imageUpload(base64).unwrap();
+          const publicId = result; 
           const imageUrl = getCloudinaryImage(publicId);
           editor.chain().focus().setImage({ src: imageUrl, alt: file.name }).run();
         }

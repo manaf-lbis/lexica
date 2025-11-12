@@ -3,6 +3,7 @@ import { IProfileService } from "../service/interface/IProfileService";
 import { sendSuccess } from "../utils/apiSuccess";
 import { validateDateOfBirth, validateName } from "../utils/validator";
 import { ArticleCategories } from "../constants/categories";
+import ApiError from "../utils/apiError";
 
 export class ProfileController {
     constructor(
@@ -44,7 +45,7 @@ export class ProfileController {
     async updateAvatar(req: Request, res: Response, next: NextFunction) {
         try {
             const { avatar } = req.body;
-            if (!avatar) throw new Error("Avatar is required");
+            if (!avatar) throw new ApiError("Avatar is required");
             
             const userId = req.user?.userId;
             await this._profileService.updateAvatar(userId!, avatar);
@@ -64,7 +65,7 @@ export class ProfileController {
 
             const allCategories = Object.values(ArticleCategories);
             categories.forEach((category:string) => {
-                if (!allCategories.includes(category as ArticleCategories)) throw new Error("Invalid category");
+                if (!allCategories.includes(category as ArticleCategories)) throw new ApiError("Invalid category");
             });
             await this._profileService.updateCategoryPrefrences(userId!, categories);
             sendSuccess(res, {}, "Category prefrences updated successfully");

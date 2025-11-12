@@ -23,7 +23,7 @@ router.get('/search', articleController.searchArticles.bind(articleController));
 router.get('/my-articles', authentication, articleController.getMyArticles.bind(articleController));
 router.get('/trending', articleController.getTrendingArticles.bind(articleController));
 router.get('/edit/:id', authentication, articleController.getArticleForEdit.bind(articleController));
-router.patch('/:id/update', authentication, articleController.getArticleForEdit.bind(articleController));
+router.patch('/:id/update', authentication, articleController.updateArticle.bind(articleController));
 router.patch('/:id/visibility', authentication, articleController.visiblityToggle.bind(articleController));
 router.get('/:id', articleController.getArticleById.bind(articleController));
 

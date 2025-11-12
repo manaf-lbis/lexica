@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import type React from "react";
+import { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import { Heart, MessageCircle, ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
 import Footer from "../components/Footer";
+import ArticleCard from "../components/ArticleCard";
 import { useGetCategoriesQuery, useSearchArticlesQuery } from "../api/articleApi";
 import { useAddLikeMutation } from "../api/likesAndCommentApi";
 import { toast } from "sonner";
@@ -17,12 +19,6 @@ interface Article {
   createdAt: string;
   isLiked: boolean;
 }
-
-
-const getCoverImage = (content: string): string => {
-  const imgMatch = content.match(/<img[^>]+src=["'](.*?)["']/i);
-  return imgMatch ? imgMatch[1] : "/placeholder.svg";
-};
 
 const ExplorePage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -69,19 +65,14 @@ const ExplorePage: React.FC = () => {
   const toggleLike = async (articleId: string) => {
     try {
       await addLike({ articleId }).unwrap();
-      setArticles(prev =>
-        prev.map(a =>
-          a._id === articleId ? { ...a, isLiked: !a.isLiked } : a
-        )
-      );
-      toast.success(`Article ${articles.find(a => a._id === articleId)?.isLiked ? "unliked" : "liked"}!`);
+      setArticles((prev) => prev.map((a) => (a._id === articleId ? { ...a, isLiked: !a.isLiked } : a)));
+      toast.success(`Article ${articles.find((a) => a._id === articleId)?.isLiked ? "unliked" : "liked"}!`);
     } catch (error: any) {
-
       if (error.status === 401) {
-        toast('Login to like article', {
+        toast("Login to like article", {
           action: {
-            label: 'Login',
-            onClick: () => navigate('/login'),
+            label: "Login",
+            onClick: () => navigate("/login"),
           },
         });
       } else {
@@ -97,8 +88,8 @@ const ExplorePage: React.FC = () => {
       <main className="max-w-6xl mx-auto px-4 py-8 sm:py-12">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <h1 className="text-2xl sm:text-4xl font-bold text-white">
               {searchQuery ? `Search: "${searchQuery}"` : "Explore Articles"}
             </h1>
             {searchQuery && (
@@ -112,22 +103,24 @@ const ExplorePage: React.FC = () => {
               </button>
             )}
           </div>
-          <p className="text-slate-400 text-sm">{totalArticles} articles found</p>
+          <p className="text-slate-400 text-sm mt-2">{totalArticles} articles found</p>
         </div>
 
-        <div className="mb-8 overflow-x-auto scrollbar-hide">
-          <div className="flex gap-2 whitespace-nowrap pb-2">
+        {/* Category Filter */}
+        <div className="mb-8 w-full">
+          <div className="flex flex-wrap gap-2">
             {isCategoriesLoading ? (
               <p className="text-slate-400">Loading categories...</p>
             ) : (
-              categories.map(cat => (
+              categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => handleCategoryChange(cat)}
-                  className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-200 ${cat === selectedCategory
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
-                    }`}
+                  className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-200 whitespace-nowrap ${
+                    cat === selectedCategory
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                  }`}
                 >
                   {cat.charAt(0).toUpperCase() + cat.slice(1)}
                 </button>
@@ -147,98 +140,47 @@ const ExplorePage: React.FC = () => {
           </div>
         ) : articles.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {articles.map(article => (
-                <article
-                  key={article._id}
-                  className="bg-slate-800/70 border border-slate-700 rounded-xl flex flex-col hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300 cursor-pointer"
-                  onClick={() => navigate(`/article/${article._id}`)}
-                >
-                  <img
-                    src={getCoverImage(article.content)}
-                    alt={article.title}
-                    className="h-48 w-full object-cover rounded-t-xl"
-                    onError={(e) => (e.currentTarget.src = "/placeholder.svg")}
-                  />
-                  <div className="p-6 flex flex-col flex-1">
-                    <div className="flex items-center gap-3 mb-4">
-                      <img
-                        src={`https://res.cloudinary.com/lexica/image/upload/${article.authorId.avatar}`}
-                        alt={article.authorId.name}
-                        className="w-10 h-10 rounded-full object-cover border border-slate-600"
-                        onError={(e) => (e.currentTarget.src = "/placeholder.svg")}
-                      />
-                      <div>
-                        <p className="text-sm font-semibold text-white">{article.authorId.name}</p>
-                        <p className="text-xs text-slate-400">{new Date(article.createdAt).toLocaleDateString()}</p>
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-bold text-white mb-2 hover:text-blue-400 transition-colors line-clamp-2">
-                      {article.title}
-                    </h3>
-                    <p className="text-sm text-slate-400 mb-4 flex-1 line-clamp-3">{article.about}</p>
-                    <div className="flex justify-between text-xs text-slate-400 mb-4">
-                      <span className="capitalize">{article.category}</span>
-                      <span>{article.views} views</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleLike(article._id);
-                          }}
-                          className="text-red-500 hover:text-red-600 transition-colors"
-                          aria-label={article.isLiked ? "Unlike article" : "Like article"}
-                        >
-                          <Heart className="w-5 h-5" fill={article.isLiked ? "currentColor" : "none"} />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/article/${article._id}`);
-                          }}
-                          className="text-slate-400 hover:text-blue-400 transition-colors"
-                          aria-label="View comments"
-                        >
-                          <MessageCircle className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </article>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12">
+              {articles.map((article) => (
+                <ArticleCard 
+                  key={article._id} 
+                  article={article} 
+                  onToggleLike={toggleLike}
+                  dateFormat="absolute"
+                />
               ))}
             </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-4 mb-12">
+              <div className="flex justify-center items-center gap-2 sm:gap-4 mb-12 flex-wrap">
                 <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="p-3 rounded-full bg-slate-800 disabled:opacity-50 hover:bg-blue-600 text-white transition-all"
+                  className="p-3 rounded-full bg-slate-800 disabled:opacity-50 hover:bg-blue-600 text-white transition-all shrink-0"
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                <div className="flex gap-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <div className="flex gap-1 sm:gap-2 flex-wrap justify-center">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${page === currentPage
-                        ? "bg-blue-600 text-white"
-                        : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-                        }`}
+                      className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        page === currentPage
+                          ? "bg-blue-600 text-white"
+                          : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                      }`}
                     >
                       {page}
                     </button>
                   ))}
                 </div>
                 <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="p-3 rounded-full bg-slate-800 disabled:opacity-50 hover:bg-blue-600 text-white transition-all"
+                  className="p-3 rounded-full bg-slate-800 disabled:opacity-50 hover:bg-blue-600 text-white transition-all shrink-0"
                   aria-label="Next page"
                 >
                   <ChevronRight className="w-5 h-5" />

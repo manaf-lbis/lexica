@@ -1,45 +1,47 @@
-import { useState } from "react"
-import { Save, Eye, EyeOff } from "lucide-react"
-import TipTapEditor from "./TipTapEditor"
-import { useEditArticleMutation, useGetCategoriesQuery } from "../../api/articleApi"
-import LoadingScreen from "../LoadingScreen"
-import { toast } from "sonner"
-import { useNavigate } from "react-router-dom"
+import { useState } from "react";
+import { Save, Eye, EyeOff } from "lucide-react";
+import TipTapEditor from "./TipTapEditor";
+import { useEditArticleMutation, useGetCategoriesQuery } from "../../api/articleApi";
+import LoadingScreen from "../LoadingScreen";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { useArticleValidation } from "../../hooks/useArticleValidation";
+
 interface Article {
-  _id: string
-  title: string
-  about: string
-  content: string
-  category: string
+  _id: string;
+  title: string;
+  about: string;
+  content: string;
+  category: string;
 }
 
 interface EditArticleFormProps {
-  article: Article
+  article: Article;
 }
 
 export default function EditArticleForm({ article }: EditArticleFormProps) {
-  const [title, setTitle] = useState(article.title)
-  const [about, setAbout] = useState(article.about)
-  const [category, setCategory] = useState(article.category)
-  const [content, setContent] = useState(article.content)
-  const [isPreview, setIsPreview] = useState(false)
+  const [title, setTitle] = useState(article.title);
+  const [about, setAbout] = useState(article.about);
+  const [category, setCategory] = useState(article.category);
+  const [content, setContent] = useState(article.content);
+  const [isPreview, setIsPreview] = useState(false);
   const { data: categories, isLoading } = useGetCategoriesQuery({});
-  const [editArticle, { isLoading: isUpdating }] = useEditArticleMutation()
+  const [editArticle, { isLoading: isUpdating }] = useEditArticleMutation();
   const navigate = useNavigate();
+  const { errors, isValid, handleBlur, handleChange } = useArticleValidation(title, about);
 
   const handleSave = async () => {
-
     try {
-      await editArticle({ _id: article._id, title, about, content, category }).unwrap()
+      await editArticle({ _id: article._id, title, about, content, category }).unwrap();
       toast.success("Article updated successfully.");
       navigate(`/my-articles`, { replace: true });
-    } catch (error:any) {
+    } catch (error: any) {
       toast.error(error.data?.message || "Failed to update article. Please try again.");
     }
-  }
+  };
 
   if (isLoading) {
-    return <LoadingScreen />
+    return <LoadingScreen />;
   }
 
   return (
@@ -57,19 +59,33 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
           <input
             type="text"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors text-lg font-semibold"
+            onChange={(e) => {
+              setTitle(e.target.value);
+              handleChange("title");
+            }}
+            onBlur={() => handleBlur("title")}
+            className={`w-full px-4 py-3 bg-slate-800/50 border ${
+              errors.title ? "border-red-500" : "border-slate-700"
+            } rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors text-lg font-semibold`}
           />
+          {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-300 mb-2">about</label>
+          <label className="block text-sm font-semibold text-slate-300 mb-2">About</label>
           <textarea
             value={about}
-            onChange={(e) => setAbout(e.target.value)}
+            onChange={(e) => {
+              setAbout(e.target.value);
+              handleChange("about");
+            }}
+            onBlur={() => handleBlur("about")}
             rows={2}
-            className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500 transition-colors resize-none"
+            className={`w-full px-4 py-3 bg-slate-800/50 border ${
+              errors.about ? "border-red-500" : "border-slate-700"
+            } rounded-lg text-slate-200 focus:outline-none focus:border-blue-500 transition-colors resize-none`}
           />
+          {errors.about && <p className="text-red-500 text-sm mt-1">{errors.about}</p>}
         </div>
 
         <div>
@@ -219,13 +235,13 @@ export default function EditArticleForm({ article }: EditArticleFormProps) {
       <div className="flex gap-3 pt-6 border-t border-slate-700">
         <button
           onClick={handleSave}
-          disabled={isUpdating}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold rounded-lg transition-all duration-300 transform hover:shadow-lg hover:shadow-blue-500/30"
+          disabled={isUpdating || !isValid}
+          className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all duration-300 transform hover:shadow-lg hover:shadow-blue-500/30"
         >
           <Save className="w-4 h-4" />
           {isUpdating ? "Saving..." : "Save Changes"}
         </button>
       </div>
     </div>
-  )
+  );
 }

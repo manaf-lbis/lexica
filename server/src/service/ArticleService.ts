@@ -60,22 +60,22 @@ export class ArticleService implements IArticleService {
 
     async getArticleForEdit(articleId: Types.ObjectId, userId: Types.ObjectId): Promise<any> {
         const article = await this._articleRepository.findById(articleId);
-        if (!article) throw new Error("Article not found");
-        if (article.authorId.toString() !== userId.toString()) throw new Error("You are not allowed to edit this article");
+        if (!article) throw new ApiError("Article not found");
+        if (article.authorId.toString() !== userId.toString()) throw new ApiError("You are not allowed to edit this article");
         return article;
     }
 
     async updateArticle(userId: Types.ObjectId, articleId: Types.ObjectId, title: string, about: string, category: string, content: string): Promise<any> {
         const article = await this._articleRepository.findById(articleId);
-        if (!article) throw new Error("Article not found");
-        if (article.authorId.toString() !== userId.toString()) throw new Error("You are not allowed to edit this article");
+        if (!article) throw new ApiError("Article not found");
+        if (article.authorId.toString() !== userId.toString()) throw new ApiError("You are not allowed to edit this article");
         return await this._articleRepository.update(articleId, { title, about, category, content });
     }
 
     async visiblityToggle(userId: Types.ObjectId, articleId: Types.ObjectId, visibility: boolean): Promise<any> {
         const article = await this._articleRepository.findById(articleId);
-        if (!article) throw new Error("Article not found");
-        if (article.authorId.toString() !== userId.toString()) throw new Error("You are not allowed to edit this article");
+        if (!article) throw new ApiError("Article not found");
+        if (article.authorId.toString() !== userId.toString()) throw new ApiError("You are not allowed to edit this article");
         return await this._articleRepository.update(articleId, { isBlocked: visibility });
     }
 

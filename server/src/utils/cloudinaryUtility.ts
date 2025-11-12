@@ -1,4 +1,5 @@
 import cloudinary from "../config/cloudinary";
+import ApiError from "./apiError";
 
 type UploadType = "avatar" | "article" | "banner" | "general";
 
@@ -26,7 +27,7 @@ export const uploadToCloudinary = async (fileData: string, type: UploadType = "g
         
     } catch (error: any) {
         console.error("Cloudinary upload error:", error.message);
-        throw new Error("Failed to upload image to Cloudinary");
+        throw new ApiError("Failed to upload image to Cloudinary");
     }
 };
 
@@ -38,6 +39,6 @@ export const deleteFromCloudinary = async (publicId: string) => {
         
     } catch (error: any) {
         console.error("Cloudinary delete error:", error.message);
-        throw new Error("Failed to delete image from Cloudinary");
+        throw new ApiError("Failed to delete image from Cloudinary");
     }
 };

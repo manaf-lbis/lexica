@@ -1,31 +1,31 @@
-import { useState } from "react"
-import { Send, Eye, EyeOff } from "lucide-react"
-import TipTapEditor from "./TipTapEditor"
-import { useGetCategoriesQuery, usePublishMutation } from "../../api/articleApi"
-import { toast } from "sonner"
-import { useNavigate } from "react-router-dom"
-
-
+import { useState } from "react";
+import { Send, Eye, EyeOff } from "lucide-react";
+import TipTapEditor from "./TipTapEditor";
+import { useGetCategoriesQuery, usePublishMutation } from "../../api/articleApi";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { useArticleValidation } from "../../hooks/useArticleValidation";
 
 export default function NewArticleForm() {
-  const [title, setTitle] = useState("")
-  const [about, setAbout] = useState("")
-  const [category, setCategory] = useState("Technology")
+  const [title, setTitle] = useState("");
+  const [about, setAbout] = useState("");
+  const [category, setCategory] = useState("Technology");
   const [content, setContent] = useState("");
-  const [isPreview, setIsPreview] = useState(false)
-  const { data: categories, isLoading} = useGetCategoriesQuery({});
+  const [isPreview, setIsPreview] = useState(false);
+  const { data: categories, isLoading } = useGetCategoriesQuery({});
   const [publish, { isLoading: isPublishing }] = usePublishMutation();
   const navigate = useNavigate();
+  const { errors, isValid, handleBlur, handleChange } = useArticleValidation(title, about);
 
   const handlePublish = async () => {
     try {
-      await publish({ title, about, content, category }).unwrap()
+      await publish({ title, about, content, category }).unwrap();
       toast.success("Article published successfully.");
       navigate(`/my-articles`, { replace: true });
-    } catch (error:any) {
+    } catch (error: any) {
       toast.error(error.data?.message || "Failed to publish article. Please try again.");
     }
-  }
+  };
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -40,21 +40,35 @@ export default function NewArticleForm() {
           <input
             type="text"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              handleChange("title");
+            }}
+            onBlur={() => handleBlur("title")}
             placeholder="What's on your mind?"
-            className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition-colors text-lg font-semibold"
+            className={`w-full px-4 py-3 bg-slate-800/50 border ${
+              errors.title ? "border-red-500" : "border-slate-700"
+            } rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition-colors text-lg font-semibold`}
           />
+          {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-slate-300 mb-2">About</label>
           <textarea
             value={about}
-            onChange={(e) => setAbout(e.target.value)}
+            onChange={(e) => {
+              setAbout(e.target.value);
+              handleChange("about");
+            }}
+            onBlur={() => handleBlur("about")}
             placeholder="A brief summary of your article..."
             rows={2}
-            className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"
+            className={`w-full px-4 py-3 bg-slate-800/50 border ${
+              errors.about ? "border-red-500" : "border-slate-700"
+            } rounded-lg text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition-colors resize-none`}
           />
+          {errors.about && <p className="text-red-500 text-sm mt-1">{errors.about}</p>}
         </div>
 
         <div>
@@ -64,7 +78,7 @@ export default function NewArticleForm() {
             onChange={(e) => setCategory(e.target.value)}
             className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500 transition-colors"
           >
-            {categories.map((cat:string) => (
+            {categories.map((cat: string) => (
               <option key={cat} value={cat} className="bg-slate-800">
                 {cat}
               </option>
@@ -202,24 +216,15 @@ export default function NewArticleForm() {
 
       {/* Action Buttons */}
       <div className="flex gap-3 pt-6 border-t border-slate-700">
-        {/* <button
-          onClick={handleSaveDraft}
-          disabled={isPublishing}
-          className="px-6 py-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white font-semibold rounded-lg transition-all duration-300"
-        >
-          Save Draft
-        </button> */}
         <button
           onClick={handlePublish}
-          disabled={isPublishing || !title.trim()}
+          disabled={isPublishing || !isValid}
           className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all duration-300 transform hover:shadow-lg hover:shadow-blue-500/30"
         >
           <Send className="w-4 h-4" />
           {isPublishing ? "Publishing..." : "Publish"}
         </button>
       </div>
-
-      
     </div>
-  )
+  );
 }

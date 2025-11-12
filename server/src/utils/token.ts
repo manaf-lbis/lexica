@@ -22,7 +22,7 @@ export const generateTokens = (payload: TokenPayload): Tokens => {
     const refreshSecret = process.env.JWT_REFRESH_SECRET;
 
     if (!accessSecret || !refreshSecret) {
-        throw new Error("Token generation failed");
+        throw new ApiError("Token generation failed");
     }
 
     const accessToken = jwt.sign(payload, accessSecret, {

@@ -4,6 +4,7 @@ import { IUserRepository } from "../repository/interface/IUserRepository";
 import { ArticleCategories } from "../constants/categories";
 import { deleteFromCloudinary, uploadToCloudinary } from "../utils/cloudinaryUtility";
 import { IArticlePrefrenceRepo } from "../repository/interface/IArticlePrefrenceRepo";
+import ApiError from "../utils/apiError";
 
 export class ProfileService implements IProfileService {
 
@@ -26,7 +27,7 @@ export class ProfileService implements IProfileService {
         })
 
 
-        if (!user) throw new Error("User not found");
+        if (!user) throw new ApiError("User not found");
 
         return {
             avatar: user?.avatar || null,

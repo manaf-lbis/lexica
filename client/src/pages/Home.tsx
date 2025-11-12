@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Heart, MessageCircle } from "lucide-react";
+import { Plus } from "lucide-react";
 import Footer from "../components/Footer";
+import ArticleCard from "../components/ArticleCard";
 import { useTrendingArticlesQuery } from "../api/articleApi";
 import { useAddLikeMutation } from "../api/likesAndCommentApi";
-import { getCoverImage } from "../utils/getCoverImage";
-import { getCloudinaryImage } from "../utils/cloudinaryUrl";
-import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
 interface Article {
@@ -43,7 +41,6 @@ const HomePage: React.FC = () => {
       );
       toast.success(`Article ${articles.find(a => a._id === articleId)?.isLiked ? "unliked" : "liked"}!`);
     } catch (error: any) {
-
       if (error.status === 401) {
         toast('Login to like article', {
           action: {
@@ -87,62 +84,12 @@ const HomePage: React.FC = () => {
         <h2 className="text-3xl sm:text-4xl font-bold text-white mb-8">Topics For You</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {articles?.map((article: Article) => (
-            <article
-              key={article._id}
-              className="bg-slate-800/50 border border-slate-700 rounded-xl flex flex-col hover:border-blue-500 transition-all cursor-pointer"
-              onClick={() => navigate(`/article/${article._id}`)}
-            >
-              <img
-                src={getCoverImage(article.content)}
-                alt={article.title}
-                className="h-40 w-full object-cover rounded-t-xl"
-                onError={(e) => (e.currentTarget.src = "/placeholder.svg")}
-              />
-              <div className="p-6 flex flex-col flex-1">
-                <div className="flex items-center gap-3 mb-4">
-                  <img
-                    src={getCloudinaryImage(article.authorId.avatar)}
-                    alt={article.authorId.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                    onError={(e) => (e.currentTarget.src = "/placeholder.svg")}
-                  />
-                  <div>
-                    <p className="text-sm font-semibold text-white">{article.authorId.name}</p>
-                    <p className="text-xs text-slate-400">{formatDistanceToNow(new Date(article.createdAt), { addSuffix: true })}</p>
-                  </div>
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2 hover:text-blue-400">{article.title}</h3>
-                <p className="text-sm text-slate-400 mb-4 flex-1 line-clamp-3">{article.about}</p>
-                <div className="flex justify-between text-xs text-slate-400 mb-4">
-                  <span>{article.category}</span>
-                  <span>{article.views} views</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleLike(article._id);
-                      }}
-                      className="text-red-500 hover:text-red-600 transition-colors"
-                      aria-label={article.isLiked ? "Unlike article" : "Like article"}
-                    >
-                      <Heart className="w-4 h-4" fill={article.isLiked ? "currentColor" : "none"} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/article/${article._id}`);
-                      }}
-                      className="text-slate-400 hover:text-blue-400 transition-colors"
-                      aria-label="View comments"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </article>
+            <ArticleCard 
+              key={article._id} 
+              article={article} 
+              onToggleLike={toggleLike}
+              dateFormat="relative"
+            />
           ))}
         </div>
 
