@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import { CommentModel } from "../model/commentsModel";
-import { IComment } from "../types/comment";
+import { IComment } from "../_types/comment";
 import { BaseRepository } from "./baseRepository";
 import { ICommentRepository } from "./interface/ICommentRepository";
 

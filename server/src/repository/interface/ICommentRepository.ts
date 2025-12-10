@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { IComment } from "../../types/comment";
+import { IComment } from "../../_types/comment";
 import { IBaseRepository } from "./IBaseRepository";
 
 export interface ICommentRepository extends IBaseRepository<IComment> {

@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { ILike } from "../types/like";
+import { ILike } from "../_types/like";
 
 const likeSchema = new Schema<ILike>({
   articleId: {

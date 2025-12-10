@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { IArticlePrefrence } from "../../types/articlePreference";
+import { IArticlePrefrence } from "../../_types/articlePreference";
 import { IBaseRepository } from "./IBaseRepository";
 import { ArticleCategories } from "../../constants/categories";
 

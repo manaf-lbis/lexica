@@ -1,4 +1,4 @@
-import { StatusCodes } from "../types/statusCodes";
+import { StatusCodes } from "../_types/statusCodes";
 
 class ApiError extends Error {
     statusCode: StatusCodes;

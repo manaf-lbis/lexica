@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import { UserModel } from "../model/userModel";
-import { IUser } from "../types/user";
+import { IUser } from "../_types/user";
 import { BaseRepository } from "./baseRepository";
 import { IUserRepository } from "./interface/IUserRepository";
 

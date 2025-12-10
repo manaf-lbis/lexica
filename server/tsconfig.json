@@ -9,10 +9,8 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "typeRoots": ["./node_modules/@types"],
-    "types": ["node", "express"]
+    "moduleResolution": "node"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/_types_backup"]
+  "exclude": ["node_modules", "dist", "src/_types"]
 }

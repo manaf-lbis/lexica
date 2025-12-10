@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { IOtpRepository } from "../repository/interface/IOtpRepository";
 import { IUserRepository } from "../repository/interface/IUserRepository";
-import { StatusCodes } from "../types/statusCodes";
+import { StatusCodes } from "../_types/statusCodes";
 import ApiError from "../utils/apiError";
 import { comparePassword, hashPassword } from "../utils/hashing";
 import { generateOTP } from "../utils/otpGenerator";

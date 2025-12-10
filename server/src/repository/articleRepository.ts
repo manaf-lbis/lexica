@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import { ArticleModel } from "../model/articleModel";
-import { IArticle } from "../types/article";
+import { IArticle } from "../_types/article";
 import { BaseRepository } from "./baseRepository";
 import { IArticleRepository } from "./interface/IArticleRepository";
 

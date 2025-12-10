@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import { ArticleCategories } from "../constants/categories";
-import { ArticleStatus, IArticle } from "../types/article";
+import { ArticleStatus, IArticle } from "../_types/article";
 
 const articleSchema = new Schema<IArticle>({
     title: {

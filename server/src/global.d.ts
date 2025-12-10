@@ -1,5 +1,5 @@
 import { JwtPayload } from "jsonwebtoken";
-import { TokenPayload } from "../../utils/token";
+import { TokenPayload } from "./utils/token";
 import { Types } from "mongoose";
 
 

@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { IArticle } from "../../types/article";
+import { IArticle } from "../../_types/article";
 import { IBaseRepository } from "./IBaseRepository";
 
 export interface IArticleRepository extends IBaseRepository<IArticle> {

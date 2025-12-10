@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { IUser } from "../../types/user";
+import { IUser } from "../../_types/user";
 import { IBaseRepository } from "./IBaseRepository";
 
 export interface IUserRepository extends IBaseRepository<IUser> {

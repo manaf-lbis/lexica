@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { ILike } from "../../types/like";
+import { ILike } from "../../_types/like";
 import { IBaseRepository } from "./IBaseRepository";
 
 export interface ILikeRepository extends IBaseRepository<ILike> {

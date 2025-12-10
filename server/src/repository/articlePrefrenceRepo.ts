@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { ArticleCategories } from "../constants/categories";
 import { ArticlePrefrenceModel } from "../model/articlePreferenceModal";
-import { IArticlePrefrence } from "../types/articlePreference";
+import { IArticlePrefrence } from "../_types/articlePreference";
 import { BaseRepository } from "./baseRepository";
 import { IArticlePrefrenceRepo } from "./interface/IArticlePrefrenceRepo";
 

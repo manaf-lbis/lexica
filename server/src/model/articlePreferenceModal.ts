@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IArticlePrefrence } from "../types/articlePreference";
+import { IArticlePrefrence } from "../_types/articlePreference";
 import { ArticleCategories } from "../constants/categories";
 
 const articlePreferenceModal = new Schema<IArticlePrefrence>({

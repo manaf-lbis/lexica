@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import { LikeModel } from "../model/likeModel";
-import { ILike } from "../types/like";
+import { ILike } from "../_types/like";
 import { BaseRepository } from "./baseRepository";
 import { ILikeRepository } from "./interface/ILikeRepository";
 
