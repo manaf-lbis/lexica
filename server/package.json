@@ -5,9 +5,9 @@
   "license": "ISC",
   "author": "",
   "scripts": {
-    "start": "nodemon src/app.ts",
+    "dev": "nodemon --watch src --exec \"ts-node -r tsconfig-paths/register src/app.ts\"",
     "build": "tsc",
-    "serve": "npm run build && pm2 start ecosystem.config.js"
+    "start": "node dist/app.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
