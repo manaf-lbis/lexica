@@ -16,7 +16,7 @@ export class AuthController {
 
             res.cookie("token", user.accessToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 sameSite: 'lax',
             })
 
@@ -40,7 +40,7 @@ export class AuthController {
 
             res.cookie('signupToken', signupToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 sameSite: 'lax',
             });
             sendSuccess(res, {}, 'OTP Generated successfully')
@@ -65,7 +65,7 @@ export class AuthController {
             res.clearCookie("signupToken");
             res.cookie("token", response.accessToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 sameSite: 'lax',
                 maxAge: Number(process.env.COOKIE_EXPIRY) * 60 * 1000
             })
@@ -117,7 +117,7 @@ export class AuthController {
 
             res.cookie("resetToken", data.resetToken), {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 sameSite: 'lax',
                 maxAge: Number(process.env.COOKIE_EXPIRY) * 60 * 1000
             };

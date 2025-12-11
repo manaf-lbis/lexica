@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import ApiError from "./apiError";
 import dotenv from "dotenv";
+import { error } from "console";
 dotenv.config();
 
 
@@ -24,6 +25,7 @@ export const sendMail = async (to: string, subject: string, html: string): Promi
         });
 
     } catch (err) {
+        console.log(error);
         throw new ApiError("Failed to send email");
     }
 };
