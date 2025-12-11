@@ -25,7 +25,7 @@ export const sendMail = async (to: string, subject: string, html: string): Promi
         });
 
     } catch (err) {
-        console.log(error);
+        console.log(err);
         throw new ApiError("Failed to send email");
     }
 };
