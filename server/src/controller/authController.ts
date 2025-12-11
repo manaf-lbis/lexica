@@ -19,6 +19,7 @@ export class AuthController {
                 secure: true,
                 sameSite: 'none',
             })
+            console.log(">>> response headers after cookie:", res.getHeaders());
 
             sendSuccess(res, {}, "Login successful");
 
