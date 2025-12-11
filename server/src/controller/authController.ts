@@ -17,7 +17,7 @@ export class AuthController {
             res.cookie("token", user.accessToken, {
                 httpOnly: true,
                 secure: true,
-                sameSite: 'lax',
+                sameSite: 'none',
             })
 
             sendSuccess(res, {}, "Login successful");
@@ -41,7 +41,7 @@ export class AuthController {
             res.cookie('signupToken', signupToken, {
                 httpOnly: true,
                 secure: true,
-                sameSite: 'lax',
+                sameSite: 'none',
             });
             sendSuccess(res, {}, 'OTP Generated successfully')
 
@@ -66,7 +66,7 @@ export class AuthController {
             res.cookie("token", response.accessToken, {
                 httpOnly: true,
                 secure: true,
-                sameSite: 'lax',
+                sameSite: 'none',
                 maxAge: Number(process.env.COOKIE_EXPIRY) * 60 * 1000
             })
 
@@ -118,7 +118,7 @@ export class AuthController {
             res.cookie("resetToken", data.resetToken), {
                 httpOnly: true,
                 secure: true,
-                sameSite: 'lax',
+                sameSite: 'none',
                 maxAge: Number(process.env.COOKIE_EXPIRY) * 60 * 1000
             };
 
